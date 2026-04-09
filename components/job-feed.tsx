@@ -108,11 +108,14 @@ export function JobFeed() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ listingId: id, status }),
     });
-    if (status === "hidden" || status === "not_interested" || status === "applied" || status === "passed") {
-      // Delay removal so animations can play before card disappears
+    if (status === "applied") {
+      // Delay removal so the applied animation can play
       setTimeout(() => {
         setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
       }, 700);
+    } else if (status === "hidden" || status === "not_interested" || status === "passed") {
+      // Remove immediately
+      setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
     } else {
       setJobs((prev) =>
         prev.map((j) => {
