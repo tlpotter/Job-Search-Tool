@@ -38,35 +38,35 @@ async function main() {
   for (let i = 0; i < data.length; i += BATCH) {
     const batch = data.slice(i, i + BATCH);
 
-    await Promise.all(batch.map(async (row) => {
+    await Promise.all(batch.map(async (row: Record<string, unknown>) => {
       const job: JobListing = {
-        id: row.id,
-        source: row.source,
-        title: row.title,
-        company: row.company,
-        location: row.location,
-        remote: row.remote,
-        url: row.url,
-        description: row.description,
-        salary: row.salary,
-        estimatedSalary: row.estimated_salary,
-        salarySource: row.salary_source,
-        salaryBelowFloor: row.salary_below_floor,
+        id: row.id as string,
+        source: row.source as string,
+        title: row.title as string,
+        company: row.company as string,
+        location: row.location as string,
+        remote: row.remote as boolean,
+        url: row.url as string,
+        description: row.description as string,
+        salary: row.salary as string | undefined,
+        estimatedSalary: row.estimated_salary as string | undefined,
+        salarySource: row.salary_source as "listed" | "estimated" | "unknown" | undefined,
+        salaryBelowFloor: row.salary_below_floor as boolean | undefined,
         hasSalaryInfo: !!row.salary,
-        mentionsDesignSystems: row.mentions_design_systems,
-        hasBenefitsInfo: row.has_benefits_info,
-        hasEquity: row.has_equity,
-        mentionsAI: row.mentions_ai,
-        isAgency: row.is_agency,
-        roleType: row.role_type,
-        companyRating: row.company_rating,
-        companyWorkLifeBalance: row.company_wlb,
-        companyGrowthTrend: row.company_growth_trend,
-        companyRedFlags: row.company_red_flags,
+        mentionsDesignSystems: row.mentions_design_systems as boolean | undefined,
+        hasBenefitsInfo: row.has_benefits_info as boolean | undefined,
+        hasEquity: row.has_equity as boolean | undefined,
+        mentionsAI: row.mentions_ai as boolean | undefined,
+        isAgency: row.is_agency as boolean | undefined,
+        roleType: row.role_type as "unknown" | "ic" | "management" | "hybrid" | undefined,
+        companyRating: row.company_rating as number | undefined,
+        companyWorkLifeBalance: row.company_wlb as number | undefined,
+        companyGrowthTrend: row.company_growth_trend as "unknown" | "growing" | "stable" | "shrinking" | undefined,
+        companyRedFlags: row.company_red_flags as string[] | undefined,
         daysOld: row.posted_date
-          ? Math.floor((Date.now() - new Date(row.posted_date).getTime()) / 86400000)
+          ? Math.floor((Date.now() - new Date(row.posted_date as string).getTime()) / 86400000)
           : undefined,
-        firstSeen: row.first_seen,
+        firstSeen: row.first_seen as string,
       };
 
       const scored = scoreListing(job);
