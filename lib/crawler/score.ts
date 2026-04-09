@@ -62,6 +62,13 @@ export function scoreListing(job: JobListing): JobListing {
   if (job.salarySource === "listed" && job.salaryBelowFloor) score -= 15;
   if (job.salarySource === "estimated" && job.salaryBelowFloor) score -= 8;
 
+  // Hard penalty for very low pay (below $100K)
+  if (job.salarySource === "listed" || job.salarySource === "estimated") {
+    const salaryStr = job.salary ?? job.estimatedSalary;
+    const salaryMax = parseSalaryMax(salaryStr);
+    if (salaryMax > 0 && salaryMax < 100_000) score -= 50;
+  }
+
   if (job.isAgency) score -= 10;
 
   const age = job.daysOld ?? 0;
