@@ -22,7 +22,7 @@ async function run() {
   const data = allData;
   const error = null;
 
-  if (error || !data) { console.log("fetch error:", error?.message); return; }
+  if (error || !data) { console.log("fetch error:", error); return; }
   console.log("Fetched:", data.length, "listings");
 
   const seen = new Map<string, string>();

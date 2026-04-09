@@ -65,7 +65,7 @@ export const jobicySource: JobSource = {
           }
         }
       } catch (err) {
-        console.error(`Jobicy fetch error for industry "${industry}":`, err);
+        console.error(`Jobicy fetch error for tag "${tag}":`, err);
       }
     }
 
