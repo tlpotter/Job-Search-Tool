@@ -3,7 +3,7 @@ name: Daily Job Crawl
 on:
   schedule:
     - cron: "0 15 * * *"  # 3 PM UTC = 8 AM MST (Arizona)
-  workflow_dispatch: {}   # Manual trigger for testing
+  workflow_dispatch:
 
 jobs:
   crawl:
