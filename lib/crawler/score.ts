@@ -35,6 +35,13 @@ export function scoreListing(job: JobListing): JobListing {
   if (job.roleType === "ic") score += 3;
   if ((job.daysOld ?? 999) <= 7) score += 2;
 
+  // HYBRID IN PHOENIX METRO
+  const phoenixTerms = ["phoenix", "scottsdale", "tempe", "mesa", "chandler", "gilbert", "glendale", "peoria", "surprise", "arizona", ", az", "(az)"];
+  const isPhoenix = phoenixTerms.some(t => (job.location ?? "").toLowerCase().includes(t));
+  const mentionsHybrid = desc.includes("hybrid") || (job.location ?? "").toLowerCase().includes("hybrid");
+  if (isPhoenix && mentionsHybrid) score += 12;
+  else if (isPhoenix && !job.remote) score += 8; // local in-person also valuable
+
   // COMPANY REPUTATION
   if (job.companyRating !== undefined) {
     if (job.companyRating >= 4.0) score += 8;

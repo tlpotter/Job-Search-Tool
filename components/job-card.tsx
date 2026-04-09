@@ -94,6 +94,11 @@ function ScoreOverlay({ job, onClose }: { job: JobCardProps["job"]; onClose: () 
   if (job.has_benefits_info) factors.push({ label: "Benefits info present", value: 12, positive: true });
   if (job.has_equity) factors.push({ label: "Equity / stock options mentioned", value: 10, positive: true });
   if (job.remote) factors.push({ label: "Remote available", value: 10, positive: true });
+  const phoenixTerms = ["phoenix", "scottsdale", "tempe", "mesa", "chandler", "gilbert", "glendale", "peoria", "surprise", "arizona", ", az", "(az)"];
+  const isPhoenix = phoenixTerms.some(t => (job.location ?? "").toLowerCase().includes(t));
+  const mentionsHybrid = desc.includes("hybrid") || (job.location ?? "").toLowerCase().includes("hybrid");
+  if (isPhoenix && mentionsHybrid) factors.push({ label: "Hybrid in Phoenix metro", value: 12, positive: true });
+  else if (isPhoenix && !job.remote) factors.push({ label: "Local Phoenix metro role", value: 8, positive: true });
   if (job.salary) factors.push({ label: "Salary range listed", value: 8, positive: true });
   const salaryStr = job.salary ?? job.estimated_salary ?? "";
   const salaryNums = salaryStr.match(/\$?([\d,]+)/g)?.map(m => parseInt(m.replace(/[$,]/g, ""))).filter(n => !isNaN(n) && n > 1000) ?? [];
