@@ -13,6 +13,7 @@ export function JobFeed() {
   const [offset, setOffset] = useState(0);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(true);
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
@@ -114,8 +115,17 @@ export function JobFeed() {
         setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
       }, 700);
     } else if (status === "hidden" || status === "not_interested" || status === "passed") {
-      // Remove immediately
-      setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
+      const el = cardRefs.current.get(id);
+      const remove = () => setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
+      if (el) {
+        el.animate([
+          { opacity: 1, transform: "scale(1)", maxHeight: `${el.offsetHeight}px` },
+          { opacity: 0, transform: "scale(0.92)", maxHeight: `${el.offsetHeight}px`, offset: 0.4 },
+          { opacity: 0, transform: "scale(0.92)", maxHeight: "0px", marginBottom: "0px" },
+        ], { duration: 350, easing: "ease-in", fill: "forwards" }).onfinish = remove;
+      } else {
+        remove();
+      }
     } else {
       setJobs((prev) =>
         prev.map((j) => {
@@ -223,12 +233,13 @@ export function JobFeed() {
                 </div>
                 <div className="space-y-3">
                   {topMatches.map((job) => (
-                    <JobCard
-                      key={job.id as string}
-                      job={job as Parameters<typeof JobCard>[0]["job"]}
-                      onStatusChange={handleStatusChange}
-                      onBookmark={handleBookmark}
-                    />
+                    <div key={job.id as string} ref={(el) => { if (el) cardRefs.current.set(job.id as string, el); else cardRefs.current.delete(job.id as string); }}>
+                      <JobCard
+                        job={job as Parameters<typeof JobCard>[0]["job"]}
+                        onStatusChange={handleStatusChange}
+                        onBookmark={handleBookmark}
+                      />
+                    </div>
                   ))}
                 </div>
               </section>
@@ -242,12 +253,13 @@ export function JobFeed() {
                 </div>
                 <div className="space-y-3">
                   {goodMatches.map((job) => (
-                    <JobCard
-                      key={job.id as string}
-                      job={job as Parameters<typeof JobCard>[0]["job"]}
-                      onStatusChange={handleStatusChange}
-                      onBookmark={handleBookmark}
-                    />
+                    <div key={job.id as string} ref={(el) => { if (el) cardRefs.current.set(job.id as string, el); else cardRefs.current.delete(job.id as string); }}>
+                      <JobCard
+                        job={job as Parameters<typeof JobCard>[0]["job"]}
+                        onStatusChange={handleStatusChange}
+                        onBookmark={handleBookmark}
+                      />
+                    </div>
                   ))}
                 </div>
               </section>

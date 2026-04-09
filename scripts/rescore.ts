@@ -11,7 +11,8 @@ const MIN_SCORE = 40; // only rescore listings worth reviewing
 async function main() {
   const sb = getSupabase();
 
-  const allData: Record<string, unknown>[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const allData: any[] = [];
   let from = 0;
   const PAGE = 1000;
   while (true) {
