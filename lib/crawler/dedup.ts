@@ -14,8 +14,15 @@ function fuzzyKey(job: JobListing): string {
   return `${company}|${title}`;
 }
 
+const BLOCKED_DOMAINS = [
+  "liveblog365.com",
+];
+
 export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
   if (listings.length === 0) return [];
+
+  // Filter out known scam/spam domains
+  listings = listings.filter((l) => !BLOCKED_DOMAINS.some((d) => l.url.includes(d)));
 
   // 1. Fuzzy dedup in-memory: same company+title → keep first occurrence (usually has more data)
   const fuzzySeenLocal = new Map<string, boolean>();
