@@ -183,6 +183,39 @@ export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
   const aiKeywords = ["ai", "artificial intelligence", "llm", "machine learning", "generative ai", "copilot", "ai-powered"];
   const agencyKeywords = ["agency", "consultancy", "consulting", "staffing", "contract-to-hire", "freelance marketplace"];
 
+  // Industry detection (first match wins)
+  const industries: { emoji: string; label: string; terms: string[] }[] = [
+    { emoji: "🏥", label: "Healthcare", terms: ["healthcare", "health care", "medical", "hospital", "clinical", "patient", "pharma", "biotech", "wellness", "telemedicine", "telehealth", "dental", "behavioral health"] },
+    { emoji: "💳", label: "Fintech", terms: ["fintech", "financial", "banking", "payments", "lending", "insurance", "mortgage", "investment", "wealth management", "trading", "crypto", "defi"] },
+    { emoji: "👥", label: "HR Tech", terms: ["hr tech", "human resources", "recruiting", "talent management", "payroll", "workforce", "people ops", "benefits administration", "applicant tracking"] },
+    { emoji: "🎓", label: "EdTech", terms: ["edtech", "education technology", "e-learning", "elearning", "online learning", "curriculum", "tutoring", "k-12", "higher education"] },
+    { emoji: "🛒", label: "E-commerce", terms: ["e-commerce", "ecommerce", "retail", "online marketplace", "shopping", "direct-to-consumer", "dtc", "consumer goods"] },
+    { emoji: "🔒", label: "Security", terms: ["cybersecurity", "cyber security", "infosec", "information security", "identity management", "authentication", "zero trust", "soc"] },
+    { emoji: "🎮", label: "Gaming", terms: ["gaming", "game studio", "video game", "esports", "interactive entertainment", "mobile game"] },
+    { emoji: "✈️", label: "Travel", terms: ["travel", "hospitality", "hotel", "airline", "tourism", "vacation rental", "booking platform"] },
+    { emoji: "🏠", label: "Real Estate", terms: ["real estate", "proptech", "property management", "homebuying", "mortgage platform", "mls"] },
+    { emoji: "🚚", label: "Logistics", terms: ["logistics", "supply chain", "shipping", "last-mile delivery", "fleet management", "warehousing", "freight"] },
+    { emoji: "📡", label: "Telecom", terms: ["telecom", "telecommunications", "wireless", "5g", "broadband", "isp", "mobile network"] },
+    { emoji: "📺", label: "Media", terms: ["media", "streaming", "content platform", "publishing", "podcast", "music platform", "video platform", "entertainment"] },
+    { emoji: "📊", label: "Data & Analytics", terms: ["data analytics", "business intelligence", "data platform", "data infrastructure", "data warehouse", "bi platform"] },
+    { emoji: "🛠️", label: "Dev Tools", terms: ["developer tools", "devops", "developer platform", "ci/cd", "infrastructure platform", "devex", "developer experience"] },
+    { emoji: "⚖️", label: "Legal Tech", terms: ["legal tech", "legaltech", "law firm", "legal software", "compliance platform", "regulatory tech"] },
+    { emoji: "🍔", label: "Food Tech", terms: ["food delivery", "restaurant tech", "food platform", "meal kit", "grocery delivery", "foodtech"] },
+    { emoji: "🏭", label: "Enterprise SaaS", terms: ["enterprise software", "saas platform", "b2b saas", "cloud software", "business software"] },
+  ];
+
+  const detectedIndustry = industries.find(({ terms }) => terms.some(t => desc.includes(t)));
+
+  // Business model detection
+  const b2bTerms = ["enterprise", "b2b", "for businesses", "for companies", "for teams", "business customers", "smb", "mid-market", "fortune 500", "corporate clients"];
+  const b2cTerms = ["b2c", "consumer app", "millions of users", "everyday people", "personal finance", "end consumers", "direct to consumer", "dtc", "mobile app for"];
+  const isB2B = b2bTerms.some(t => desc.includes(t));
+  const isB2C = b2cTerms.some(t => desc.includes(t));
+  const businessModel = isB2B && isB2C ? { emoji: "🔄", label: "B2B+B2C" }
+    : isB2B ? { emoji: "🏢", label: "B2B" }
+    : isB2C ? { emoji: "👤", label: "B2C" }
+    : null;
+
   function matchedTerms(keywords: string[]): string {
     const found = keywords.filter(k => desc.includes(k));
     return found.length > 0 ? found.map(k => `"${k}"`).join(", ") : "keyword match";
@@ -258,6 +291,8 @@ export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
 
               {/* Chips */}
               <div className="flex flex-wrap gap-1.5">
+                {detectedIndustry && <Chip emoji={detectedIndustry.emoji} label={detectedIndustry.label} tooltip={`Industry: ${detectedIndustry.label}`} />}
+                {businessModel && <Chip emoji={businessModel.emoji} label={businessModel.label} tooltip={`Business model: ${businessModel.label}`} />}
                 {job.has_benefits_info && <Chip emoji="🔥" label="Benefits" tooltip={`Found: ${matchedTerms(benefitsKeywords)} · +12 pts`} />}
                 {job.has_equity && <Chip emoji="📈" label="Equity" tooltip={`Found: ${matchedTerms(equityKeywords)} · +10 pts`} />}
                 {job.mentions_design_systems && <Chip emoji="🧩" label="Design Systems" tooltip={`Found: ${matchedTerms(designSystemsKeywords)} · +15 pts`} />}
