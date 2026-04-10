@@ -128,18 +128,26 @@ export async function runCrawler(): Promise<void> {
     ? fs.readFileSync(profilePath, "utf-8")
     : "";
 
-  for (const job of topCandidates) {
-    try {
-      const aiResult = await aiRankListing(job, profile);
-      job.aiFitScore = aiResult.fitScore;
-      job.aiFitSummary = aiResult.summary;
-      job.aiSkillGaps = aiResult.gaps;
-      job.aiHighlights = aiResult.highlights;
-      job.aiDescriptionSummary = aiResult.descriptionSummary;
-    } catch (err) {
-      console.error(`  AI rank failed for ${job.title} @ ${job.company}:`, err);
-    }
+  const AI_CONCURRENCY = 5;
+  let aiDone = 0;
+  for (let i = 0; i < topCandidates.length; i += AI_CONCURRENCY) {
+    const batch = topCandidates.slice(i, i + AI_CONCURRENCY);
+    await Promise.all(batch.map(async (job) => {
+      try {
+        const aiResult = await aiRankListing(job, profile);
+        job.aiFitScore = aiResult.fitScore;
+        job.aiFitSummary = aiResult.summary;
+        job.aiSkillGaps = aiResult.gaps;
+        job.aiHighlights = aiResult.highlights;
+        job.aiDescriptionSummary = aiResult.descriptionSummary;
+      } catch (err) {
+        console.error(`  AI rank failed for ${job.title} @ ${job.company}:`, err);
+      }
+      aiDone++;
+      process.stdout.write(`\r  ${aiDone}/${topCandidates.length} AI ranked`);
+    }));
   }
+  console.log();
 
   // Final sort: keyword score + AI fit score
   withReputation.sort((a, b) => {
