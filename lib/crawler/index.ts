@@ -106,10 +106,14 @@ export async function runCrawler(): Promise<void> {
 
   const reputations = new Map<string, Awaited<ReturnType<typeof lookupCompanyReputation>>>();
   let repDone = 0;
-  for (const company of companies) {
-    reputations.set(company, await lookupCompanyReputation(company));
-    repDone++;
-    process.stdout.write(`\r  ${repDone}/${companies.length} companies looked up`);
+  const REP_CONCURRENCY = 5;
+  for (let i = 0; i < companies.length; i += REP_CONCURRENCY) {
+    const batch = companies.slice(i, i + REP_CONCURRENCY);
+    await Promise.all(batch.map(async (company) => {
+      reputations.set(company, await lookupCompanyReputation(company));
+      repDone++;
+      process.stdout.write(`\r  ${repDone}/${companies.length} companies looked up`);
+    }));
   }
   console.log();
 
