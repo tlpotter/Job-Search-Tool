@@ -28,7 +28,8 @@ async function fetchAdzunaPage(
   query: string,
   page: number,
   appId: string,
-  apiKey: string
+  apiKey: string,
+  where?: string
 ): Promise<AdzunaJob[]> {
   const params = new URLSearchParams({
     app_id: appId,
@@ -38,6 +39,7 @@ async function fetchAdzunaPage(
     sort_by: "date",
     max_days_old: "30",
   });
+  if (where) params.set("where", where);
 
   const url = `https://api.adzuna.com/v1/api/jobs/us/search/${page}?${params}`;
   const res = await fetch(url, {
@@ -47,7 +49,8 @@ async function fetchAdzunaPage(
 
   const json = await res.json();
   if (page === 1) {
-    console.log(`    Adzuna "${query}": ${json.count ?? "?"} total available`);
+    const locationTag = where ? ` [${where}]` : "";
+    console.log(`    Adzuna "${query}"${locationTag}: ${json.count ?? "?"} total available`);
   }
   return json.results ?? [];
 }
@@ -79,6 +82,16 @@ export const adzunaSource: JobSource = {
       "design systems designer",
       "UX engineer",
     ];
+
+    // Shorter query list for location-targeted Phoenix searches
+    const phoenixQueries = [
+      "UX designer",
+      "product designer",
+      "senior designer",
+      "design lead",
+    ];
+
+    const PHOENIX_LOCATIONS = ["Phoenix, AZ", "Scottsdale, AZ", "Tempe, AZ", "Chandler, AZ"];
 
     const MAX_PAGES = 20;
     const seen = new Set<string>();
@@ -125,6 +138,51 @@ export const adzunaSource: JobSource = {
         console.error(`Adzuna fetch error for query "${query}" page ${page}:`, err);
         break;
       }
+      }
+    }
+
+    // Phoenix metro location-targeted queries (fewer pages, broader terms)
+    for (const location of PHOENIX_LOCATIONS) {
+      for (const query of phoenixQueries) {
+        for (let page = 1; page <= 3; page++) {
+          try {
+            const jobs = await fetchAdzunaPage(query, page, appId, apiKey, location);
+            if (jobs.length === 0) break;
+            for (const job of jobs) {
+              if (!job.title || !job.company?.display_name || !job.redirect_url) continue;
+
+              const jobLocation = job.location?.display_name ?? location;
+              const isRemote =
+                jobLocation.toLowerCase().includes("remote") ||
+                (job.description ?? "").toLowerCase().includes("remote");
+
+              const salary = formatSalary(job.salary_min, job.salary_max);
+
+              const listing: JobListing = {
+                id: "",
+                source: "adzuna",
+                title: job.title,
+                company: job.company.display_name,
+                location: jobLocation,
+                remote: isRemote,
+                url: job.redirect_url,
+                salary,
+                postedDate: job.created?.split("T")[0],
+                description: job.description,
+                firstSeen: new Date().toISOString().split("T")[0],
+              };
+
+              listing.id = generateId(listing);
+              if (!seen.has(listing.id)) {
+                seen.add(listing.id);
+                results.push(listing);
+              }
+            }
+          } catch (err) {
+            console.error(`Adzuna Phoenix fetch error for "${query}" in ${location}:`, err);
+            break;
+          }
+        }
       }
     }
 

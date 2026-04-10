@@ -54,7 +54,8 @@ export const jsearchSource: JobSource = {
       return [];
     }
 
-    const queries = [
+    // Remote queries
+    const remoteQueries = [
       "senior UX designer remote",
       "senior product designer remote",
       "staff UX designer remote",
@@ -71,6 +72,16 @@ export const jsearchSource: JobSource = {
       "UX engineer remote",
     ];
 
+    // Phoenix metro location-specific queries
+    const phoenixQueries = [
+      "UX designer Phoenix Arizona",
+      "product designer Phoenix Arizona",
+      "UX designer Scottsdale Arizona",
+      "product designer Scottsdale Arizona",
+      "senior designer Tempe Arizona",
+      "UX designer Chandler Arizona",
+    ];
+
     // INITIAL_PULL=true in env does a deeper catch-up pull (5 pages, month range)
     // Normal daily runs do 1 page, week range
     const isInitialPull = process.env.JSEARCH_INITIAL_PULL === "true";
@@ -80,7 +91,8 @@ export const jsearchSource: JobSource = {
     const seen = new Set<string>();
     const results: JobListing[] = [];
 
-    for (const query of queries) {
+    // Run remote queries
+    for (const query of remoteQueries) {
       try {
         const params = new URLSearchParams({
           query,
@@ -148,6 +160,80 @@ export const jsearchSource: JobSource = {
         }
       } catch (err) {
         console.error(`JSearch fetch error for query "${query}":`, err);
+      }
+    }
+
+    // Run Phoenix location-specific queries (not remote_jobs_only)
+    for (const query of phoenixQueries) {
+      try {
+        const params = new URLSearchParams({
+          query,
+          page: "1",
+          num_pages: numPages,
+          date_posted: datePosted,
+        });
+
+        const res = await fetch(
+          `https://jsearch.p.rapidapi.com/search?${params}`,
+          {
+            headers: {
+              "X-RapidAPI-Key": apiKey,
+              "X-RapidAPI-Host": "jsearch.p.rapidapi.com",
+            },
+          }
+        );
+
+        const remaining = parseInt(res.headers.get("X-RateLimit-Requests-Remaining") ?? "999");
+        const limit = parseInt(res.headers.get("X-RateLimit-Requests-Limit") ?? "999");
+        const usedPct = ((limit - remaining) / limit) * 100;
+        if (usedPct >= 90) {
+          console.warn(`  JSearch: quota at ${Math.round(usedPct)}% (${remaining} remaining) — stopping early`);
+          break;
+        }
+
+        if (!res.ok) {
+          console.warn(`  JSearch Phoenix query "${query}" failed: ${res.status}`);
+          continue;
+        }
+
+        const json = await res.json();
+        const jobs: JSearchJob[] = json.data ?? [];
+        console.log(`  JSearch Phoenix "${query}": ${jobs.length} results`);
+
+        for (const job of jobs) {
+          const locationParts = [job.job_city, job.job_state, job.job_country]
+            .filter(Boolean)
+            .join(", ");
+
+          const salary = formatSalary(
+            job.job_min_salary,
+            job.job_max_salary,
+            job.job_salary_period
+          );
+
+          const listing: JobListing = {
+            id: "",
+            source: "jsearch",
+            title: job.job_title,
+            company: job.employer_name,
+            location: locationParts || "Remote",
+            remote: job.job_is_remote,
+            url: job.job_apply_link,
+            salary,
+            postedDate: job.job_posted_at_datetime_utc?.split("T")[0],
+            description: job.job_description,
+            firstSeen: new Date().toISOString().split("T")[0],
+          };
+
+          listing.id = generateId(listing);
+
+          if (!seen.has(listing.id)) {
+            seen.add(listing.id);
+            results.push(listing);
+          }
+        }
+      } catch (err) {
+        console.error(`JSearch Phoenix fetch error for query "${query}":`, err);
       }
     }
 

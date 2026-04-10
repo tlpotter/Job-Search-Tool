@@ -208,6 +208,10 @@ const COMPANIES: { slug: string; name: string }[] = [
   { slug: "cognite", name: "Cognite" },
   { slug: "karbon", name: "Karbon" },
   { slug: "phdata", name: "phData" },
+  { slug: "offerpad", name: "Offerpad" },
+  { slug: "paypal", name: "PayPal" },
+  { slug: "starburstdata", name: "Starburst" },
+  { slug: "veritasglobal", name: "Veritas" },
   // Verified new additions
   { slug: "thumbtack", name: "Thumbtack" },
   { slug: "honeybook", name: "HoneyBook" },

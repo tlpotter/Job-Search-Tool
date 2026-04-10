@@ -81,6 +81,11 @@ const COMPANIES: { slug: string; name: string }[] = [
   { slug: "gorgias", name: "Gorgias" },
   { slug: "okendo", name: "Okendo" },
   { slug: "rebuy", name: "Rebuy" },
+  // Phoenix metro companies
+  { slug: "keap", name: "Keap" },
+  { slug: "insightdirect", name: "Insight" },
+  { slug: "weave", name: "Weave" },
+  { slug: "varos", name: "Varos" },
   // Verified new additions
   { slug: "palantir", name: "Palantir" },
   { slug: "olo", name: "Olo" },
