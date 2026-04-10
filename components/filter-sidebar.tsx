@@ -66,7 +66,7 @@ function FilterToggle({ id, label, checked, onChange }: { id: string; label: str
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="checkbox checkbox-sm checkbox-primary"
+        className="checkbox checkbox-sm checkbox-primary rounded-none"
       />
       <span className="text-sm text-base-content/80 select-none">{label}</span>
     </label>
