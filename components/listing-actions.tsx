@@ -35,6 +35,7 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
     });
     setSaving(false);
     if (newStatus === "not_interested") router.push("/");
+    if (newStatus === "applied") setTimeout(() => router.push("/"), 800);
   }
 
   return (
