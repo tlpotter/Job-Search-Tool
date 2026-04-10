@@ -212,12 +212,12 @@ export function JobFeed() {
             {/* Results bar with sort */}
             <div className="flex items-center justify-between">
               <p className="text-sm text-base-content/60">
-                {total.toLocaleString()} listings
+                {visibleJobs.length.toLocaleString()} listings
                 {dbTotal > 0 && total !== dbTotal && (
                   <span className="text-base-content/40"> · filtered from {dbTotal.toLocaleString()} total in database</span>
                 )}
-                {jobs.length < total && (
-                  <span className="text-base-content/40"> · showing {jobs.length.toLocaleString()}</span>
+                {visibleJobs.length < (jobs as unknown[]).length && (
+                  <span className="text-base-content/40"> · from {(jobs as unknown[]).length.toLocaleString()} loaded</span>
                 )}
               </p>
               <div className="flex items-center gap-2">
