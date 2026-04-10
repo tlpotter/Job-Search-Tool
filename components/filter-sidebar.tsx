@@ -5,7 +5,8 @@ import { Slider } from "@/components/ui/slider";
 export interface Filters {
   minScore: number;
   remote: boolean;
-  remoteOrLocal: boolean;
+  localPhoenix: boolean;
+  hybrid: boolean;
   hasEquity: boolean;
   hasBenefits: boolean;
   hasSalary: boolean;
@@ -25,7 +26,8 @@ export interface Filters {
 export const DEFAULT_FILTERS: Filters = {
   minScore: 40,
   remote: false,
-  remoteOrLocal: false,
+  localPhoenix: false,
+  hybrid: false,
   hasEquity: false,
   hasBenefits: false,
   hasSalary: false,
@@ -103,7 +105,8 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
 
       <Section title="Must have">
         <FilterToggle id="remote" label="Remote only" checked={filters.remote} onChange={(v) => update("remote", v)} />
-        <FilterToggle id="remoteOrLocal" label="Remote or Phoenix AZ" checked={filters.remoteOrLocal} onChange={(v) => update("remoteOrLocal", v)} />
+        <FilterToggle id="localPhoenix" label="Local Phoenix AZ" checked={filters.localPhoenix} onChange={(v) => update("localPhoenix", v)} />
+        <FilterToggle id="hybrid" label="Hybrid" checked={filters.hybrid} onChange={(v) => update("hybrid", v)} />
         <FilterToggle id="hasEquity" label="Equity / RSUs" checked={filters.hasEquity} onChange={(v) => update("hasEquity", v)} />
         <FilterToggle id="hasBenefits" label="Benefits info" checked={filters.hasBenefits} onChange={(v) => update("hasBenefits", v)} />
         <FilterToggle id="hasSalary" label="Salary listed" checked={filters.hasSalary} onChange={(v) => update("hasSalary", v)} />

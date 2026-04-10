@@ -25,7 +25,8 @@ export function JobFeed() {
       offset: String(off),
     });
     if (f.remote) params.set("remote", "true");
-    if (f.remoteOrLocal) params.set("remoteOrLocal", "true");
+    if (f.localPhoenix) params.set("localPhoenix", "true");
+    if (f.hybrid) params.set("hybrid", "true");
     if (f.hasEquity) params.set("hasEquity", "true");
     if (f.hasBenefits) params.set("hasBenefits", "true");
     if (f.hasSalary) params.set("hasSalary", "true");
@@ -159,11 +160,15 @@ export function JobFeed() {
 
   const visibleJobs = (jobs as Record<string, unknown>[]).filter((j) => {
     if (HIDDEN_STATUSES.has((j.user_actions as Record<string, unknown> | null)?.status as string)) return false;
-    if (filters.remoteOrLocal) {
-      const loc = ((j.location as string) ?? "").toLowerCase();
-      const isRemote = j.remote === true || loc.includes("remote");
+    const loc = ((j.location as string) ?? "").toLowerCase();
+    const desc = ((j.description as string) ?? "").toLowerCase();
+    if (filters.localPhoenix) {
       const isLocal = PHOENIX_TERMS.some(t => loc.includes(t));
-      if (!isRemote && !isLocal) return false;
+      if (!isLocal) return false;
+    }
+    if (filters.hybrid) {
+      const isHybrid = loc.includes("hybrid") || desc.includes("hybrid");
+      if (!isHybrid) return false;
     }
     return true;
   });
