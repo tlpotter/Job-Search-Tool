@@ -30,7 +30,7 @@ Red Flags: ${job.companyRedFlags?.length ? job.companyRedFlags.join(", ") : "non
       : "";
 
   const response = await getClient().messages.create({
-    model: "claude-sonnet-4-6",
+    model: "claude-haiku-4-5-20251001",
     max_tokens: 1000,
     system: `You are a job fit evaluator. Respond with a single raw JSON object only — no markdown, no prose, no explanation. The JSON must have exactly these keys:
 {"fitScore": <integer 0-100>, "summary": "<1-2 sentences about fit>", "gaps": ["<string>"], "highlights": ["<string>"], "descriptionSummary": "<2-3 sentences summarizing what this role actually does day-to-day>"}
