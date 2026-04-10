@@ -94,8 +94,11 @@ function ScoreOverlay({ job, onClose }: { job: JobCardProps["job"]; onClose: () 
   if (job.has_benefits_info) factors.push({ label: "Benefits info present", value: 12, positive: true });
   if (job.has_equity) factors.push({ label: "Equity / stock options mentioned", value: 10, positive: true });
   if (job.remote) factors.push({ label: "Remote available", value: 10, positive: true });
-  const phoenixTerms = ["phoenix", "scottsdale", "tempe", "mesa", "chandler", "gilbert", "glendale", "peoria", "surprise", "arizona", ", az", "(az)"];
-  const isPhoenix = phoenixTerms.some(t => (job.location ?? "").toLowerCase().includes(t));
+  const jobLoc = (job.location ?? "").toLowerCase();
+  const phoenixUnambiguous = ["phoenix", "scottsdale", "tempe", "arizona", ", az", "(az)", " az "];
+  const phoenixAmbiguous = ["mesa", "chandler", "gilbert", "glendale", "peoria", "surprise"];
+  const isPhoenix = phoenixUnambiguous.some(t => jobLoc.includes(t)) ||
+    (phoenixAmbiguous.some(t => jobLoc.includes(t)) && (jobLoc.includes("az") || jobLoc.includes("arizona")));
   const mentionsHybrid = desc.includes("hybrid") || (job.location ?? "").toLowerCase().includes("hybrid");
   if (isPhoenix && mentionsHybrid) factors.push({ label: "Hybrid in Phoenix metro", value: 12, positive: true });
   else if (isPhoenix && !job.remote) factors.push({ label: "Local Phoenix metro role", value: 8, positive: true });

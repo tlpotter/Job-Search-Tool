@@ -155,7 +155,10 @@ export function JobFeed() {
     );
   }
 
-  const PHOENIX_TERMS = ["phoenix", "scottsdale", "tempe", "mesa", "chandler", "gilbert", "glendale", "peoria", "surprise", "arizona", ", az", "(az)"];
+  // Unambiguous Phoenix terms — match anywhere in location
+  const PHOENIX_UNAMBIGUOUS = ["phoenix", "scottsdale", "tempe", "arizona", ", az", "(az)", " az "];
+  // Ambiguous city names shared with other states — only match if AZ context also present
+  const PHOENIX_AMBIGUOUS = ["mesa", "chandler", "gilbert", "glendale", "peoria", "surprise"];
   const HIDDEN_STATUSES = new Set(["not_interested", "applied", "hidden", "passed"]);
 
   const visibleJobs = (jobs as Record<string, unknown>[]).filter((j) => {
@@ -163,8 +166,9 @@ export function JobFeed() {
     const loc = ((j.location as string) ?? "").toLowerCase();
     const desc = ((j.description as string) ?? "").toLowerCase();
     if (filters.localPhoenix) {
-      const isLocal = PHOENIX_TERMS.some(t => loc.includes(t));
-      if (!isLocal) return false;
+      const hasAZContext = PHOENIX_UNAMBIGUOUS.some(t => loc.includes(t));
+      const hasAmbiguousWithAZ = PHOENIX_AMBIGUOUS.some(t => loc.includes(t)) && (loc.includes("az") || loc.includes("arizona"));
+      if (!hasAZContext && !hasAmbiguousWithAZ) return false;
     }
     if (filters.hybrid) {
       const isHybrid = loc.includes("hybrid") || desc.includes("hybrid");

@@ -36,8 +36,11 @@ export function scoreListing(job: JobListing): JobListing {
   if ((job.daysOld ?? 999) <= 7) score += 2;
 
   // HYBRID IN PHOENIX METRO
-  const phoenixTerms = ["phoenix", "scottsdale", "tempe", "mesa", "chandler", "gilbert", "glendale", "peoria", "surprise", "arizona", ", az", "(az)"];
-  const isPhoenix = phoenixTerms.some(t => (job.location ?? "").toLowerCase().includes(t));
+  const loc = (job.location ?? "").toLowerCase();
+  const phoenixUnambiguous = ["phoenix", "scottsdale", "tempe", "arizona", ", az", "(az)", " az "];
+  const phoenixAmbiguous = ["mesa", "chandler", "gilbert", "glendale", "peoria", "surprise"];
+  const isPhoenix = phoenixUnambiguous.some(t => loc.includes(t)) ||
+    (phoenixAmbiguous.some(t => loc.includes(t)) && (loc.includes("az") || loc.includes("arizona")));
   const mentionsHybrid = desc.includes("hybrid") || (job.location ?? "").toLowerCase().includes("hybrid");
   if (isPhoenix && mentionsHybrid) score += 12;
   else if (isPhoenix && !job.remote) score += 8; // local in-person also valuable
