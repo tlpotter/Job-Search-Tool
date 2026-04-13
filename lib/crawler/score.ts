@@ -29,6 +29,13 @@ export function scoreListing(job: JobListing): JobListing {
     else if (salaryMax >= 150_000) score += 6;
   }
 
+  // SAAS / B2B EXPERIENCE MATCH
+  const b2bTerms = ["enterprise", "b2b", "for businesses", "for companies", "for teams", "business customers", "smb", "mid-market", "fortune 500", "corporate clients", "saas", "software as a service", "internal tools", "internal tool", "business owners", "small business", "admin dashboard", "operations platform", "underwriting", "procurement", "erp", "crm platform", "hr platform", "payroll platform"];
+  const isSaaS = desc.includes("saas") || desc.includes("software as a service");
+  const isB2B = b2bTerms.some((t) => desc.includes(t));
+  if (isSaaS) score += 10;
+  else if (isB2B) score += 8;
+
   // BONUS SIGNALS
   if (job.mentionsAI) score += 5;
   if (desc.includes("figma")) score += 5;
