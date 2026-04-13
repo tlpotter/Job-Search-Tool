@@ -72,7 +72,8 @@ export async function runCrawler(): Promise<void> {
   console.log(`  New listings: ${newListings.length}\n`);
 
   if (newListings.length === 0) {
-    console.log("No new listings. Done.");
+    console.log("No new listings — sending digest of existing top matches.");
+    await sendDigest();
     return;
   }
 
@@ -165,9 +166,9 @@ export async function runCrawler(): Promise<void> {
   await saveListings(withReputation);
   console.log(`  Updated ${withReputation.length} listings`);
 
-  // Send email digest
+  // Send email digest (pulls top unreviewed listings from DB)
   console.log("Sending email digest...");
-  await sendDigest(withReputation);
+  await sendDigest();
 
   console.log("\n=== Crawler Complete ===");
   console.log(`Processed ${withReputation.length} new listings.`);
