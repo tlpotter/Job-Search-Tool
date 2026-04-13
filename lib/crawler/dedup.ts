@@ -62,9 +62,10 @@ export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
   // used to block re-saving similar jobs from different sources/URLs
   const actionedFuzzyKeys = new Set(
     (existingByCompany ?? [])
-      .filter((r: { user_actions: { status?: string } | null }) =>
-        ACTIONED_STATUSES.has(r.user_actions?.status ?? "")
-      )
+      .filter((r: { title: string; company: string; user_actions: { status?: string }[] }) => {
+        const status = r.user_actions?.[0]?.status ?? "";
+        return ACTIONED_STATUSES.has(status);
+      })
       .map((r: { title: string; company: string }) =>
         `${r.company.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`
       )
