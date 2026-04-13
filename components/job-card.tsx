@@ -210,8 +210,8 @@ export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
   const detectedIndustry = industries.find(({ terms }) => terms.some(t => desc.includes(t)));
 
   // Business model detection
-  const b2bTerms = ["enterprise", "b2b", "for businesses", "for companies", "for teams", "business customers", "smb", "mid-market", "fortune 500", "corporate clients"];
-  const b2cTerms = ["b2c", "consumer app", "millions of users", "everyday people", "personal finance", "end consumers", "direct to consumer", "dtc", "mobile app for"];
+  const b2bTerms = ["enterprise", "b2b", "for businesses", "for companies", "for teams", "business customers", "smb", "mid-market", "fortune 500", "corporate clients", "saas", "software as a service", "internal tools", "internal tool", "business owners", "small business", "admin dashboard", "operations platform", "underwriting", "procurement", "accounts payable", "accounts receivable", "erp", "crm platform", "hr platform", "payroll platform", "fleet management", "supply chain platform"];
+  const b2cTerms = ["b2c", "consumer app", "millions of users", "everyday people", "personal finance", "end consumers", "direct to consumer", "dtc", "mobile app for", "consumer product", "retail customers", "general public", "everyday users"];
   const isB2B = b2bTerms.some(t => desc.includes(t));
   const isB2C = b2cTerms.some(t => desc.includes(t));
   const businessModel = isB2B && isB2C ? { emoji: "🔄", label: "B2B+B2C" }
