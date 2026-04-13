@@ -19,7 +19,14 @@ function daysSince(dateStr?: string): number {
 export function classifyListing(job: JobListing): JobListing {
   const desc = ((job.description ?? "") + " " + job.title).toLowerCase();
 
-  job.isAgency = searchConfig.agencyKeywords.some((k) => desc.includes(k));
+  const companyLower = job.company.toLowerCase();
+  const urlLower = (job.url ?? "").toLowerCase();
+  const agencyCompanyTerms = ["recruiting", "staffing", "talent", "search group", "search firm", "placement", "headhunt", "executive search"];
+  const agencyDomains = ["recruiterflow.com", "loxo.co", "crelate.com", "bullhorn.com", "workable.com/jobs/r/"];
+  job.isAgency =
+    searchConfig.agencyKeywords.some((k) => desc.includes(k)) ||
+    agencyCompanyTerms.some((k) => companyLower.includes(k)) ||
+    agencyDomains.some((d) => urlLower.includes(d));
   job.hasEquity = searchConfig.equityKeywords.some((k) => desc.includes(k));
   job.hasBenefitsInfo = searchConfig.benefitsKeywords.some((k) => desc.includes(k));
   job.mentionsDesignSystems = searchConfig.designSystemsKeywords.some((k) => desc.includes(k));
