@@ -42,21 +42,36 @@ export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
 
   const existingIds = new Set((existing ?? []).map((r: { id: string }) => r.id));
 
-  // 3. Also fuzzy-check against DB titles to catch URL-variant duplicates already saved
-  const titles = [...new Set(dedupedLocally.map((l) => l.title.toLowerCase().trim()))];
-  const { data: existingByTitle } = await supabase
+  // 3. Fuzzy-check against DB by company name to catch URL-variant duplicates and
+  //    jobs the user already actioned (not_interested, applied, etc.)
+  const companies = [...new Set(dedupedLocally.map((l) => l.company.trim()))];
+  const { data: existingByCompany } = await supabase
     .from("listings")
-    .select("title, company")
-    .in("title", titles.slice(0, 500)); // Supabase IN limit
+    .select("title, company, user_actions(status)")
+    .in("company", companies.slice(0, 500));
+
+  const ACTIONED_STATUSES = new Set(["applied", "not_interested", "hidden", "passed"]);
 
   const existingFuzzyKeys = new Set(
-    (existingByTitle ?? []).map((r: { title: string; company: string }) =>
+    (existingByCompany ?? []).map((r: { title: string; company: string }) =>
       `${r.company.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`
     )
   );
 
+  // Also build a set of fuzzy keys for jobs the user has already actioned —
+  // used to block re-saving similar jobs from different sources/URLs
+  const actionedFuzzyKeys = new Set(
+    (existingByCompany ?? [])
+      .filter((r: { user_actions: { status?: string } | null }) =>
+        ACTIONED_STATUSES.has(r.user_actions?.status ?? "")
+      )
+      .map((r: { title: string; company: string }) =>
+        `${r.company.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`
+      )
+  );
+
   return dedupedLocally.filter(
-    (l) => !existingIds.has(l.id) && !existingFuzzyKeys.has(fuzzyKey(l))
+    (l) => !existingIds.has(l.id) && !existingFuzzyKeys.has(fuzzyKey(l)) && !actionedFuzzyKeys.has(fuzzyKey(l))
   );
 }
 
