@@ -52,6 +52,10 @@ export function scoreListing(job: JobListing): JobListing {
   if (isPhoenix && mentionsHybrid) score += 12;
   else if (isPhoenix && !job.remote) score += 8; // local in-person also valuable
 
+  // PENALTY: in-office out of state (can't relocate)
+  // Remote and Phoenix listings are already handled above — this catches everything else
+  if (!job.remote && !isPhoenix) score -= 50;
+
   // COMPANY REPUTATION
   if (job.companyRating !== undefined) {
     if (job.companyRating >= 4.0) score += 8;
