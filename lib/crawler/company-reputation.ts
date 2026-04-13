@@ -3,16 +3,18 @@ import { CompanyReputation } from "./types";
 const reputationCache = new Map<string, CompanyReputation>();
 
 function parseRating(text: string): number | undefined {
-  const match = text.match(/(\d+\.?\d*)\s*(\/\s*5|out of 5|stars?)/i);
+  // Require a decimal point so "1/5" (pagination, review counts) can't match
+  // Glassdoor always shows ratings like "4.1" or "3.8", never a bare integer
+  const match = text.match(/(\d+\.\d+)\s*(\/\s*5|out of 5|stars?)/i);
   if (match) {
     const val = parseFloat(match[1]);
-    return val >= 0 && val <= 5 ? val : undefined;
+    return val >= 1.0 && val <= 5.0 ? val : undefined;
   }
   // Also try "4.2 rating" patterns
   const ratingMatch = text.match(/(\d+\.\d+)\s*rating/i);
   if (ratingMatch) {
     const val = parseFloat(ratingMatch[1]);
-    return val >= 0 && val <= 5 ? val : undefined;
+    return val >= 1.0 && val <= 5.0 ? val : undefined;
   }
   return undefined;
 }
