@@ -15,7 +15,7 @@ export function scoreListing(job: JobListing): JobListing {
   if (hasKeywordInTitle) score += 20;
 
   // HIGH-VALUE SIGNALS
-  if (job.mentionsDesignSystems) score += 15;
+  if (job.mentionsDesignSystems) score -= 20;
   if (job.hasBenefitsInfo) score += 12;
   if (job.hasEquity) score += 10;
   if (job.remote) score += 10;
