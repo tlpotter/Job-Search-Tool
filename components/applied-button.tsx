@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import confetti from "canvas-confetti";
 
 interface AppliedButtonProps {
   isApplied: boolean;
@@ -9,13 +10,47 @@ interface AppliedButtonProps {
   size?: "sm" | "md";
 }
 
+function fireConfetti() {
+  // Two cannon bursts from the top corners
+  confetti({
+    particleCount: 80,
+    spread: 70,
+    origin: { x: 0.1, y: 0.1 },
+    colors: ["#22c55e", "#16a34a", "#86efac", "#ffffff", "#fbbf24"],
+    startVelocity: 55,
+    gravity: 0.8,
+    ticks: 200,
+  });
+  confetti({
+    particleCount: 80,
+    spread: 70,
+    origin: { x: 0.9, y: 0.1 },
+    colors: ["#22c55e", "#16a34a", "#86efac", "#ffffff", "#fbbf24"],
+    startVelocity: 55,
+    gravity: 0.8,
+    ticks: 200,
+  });
+  // A third burst from the center for good measure
+  setTimeout(() => {
+    confetti({
+      particleCount: 50,
+      spread: 100,
+      origin: { x: 0.5, y: 0.2 },
+      colors: ["#22c55e", "#3b82f6", "#f59e0b", "#ec4899", "#ffffff"],
+      startVelocity: 40,
+      gravity: 0.9,
+      ticks: 180,
+    });
+  }, 150);
+}
+
 export function AppliedButton({ isApplied, disabled, onClick, size = "sm" }: AppliedButtonProps) {
   const [justClicked, setJustClicked] = useState(false);
   const btnRef = useRef<HTMLButtonElement>(null);
   const sizeClass = size === "sm" ? "btn-sm" : "";
   const showApplied = isApplied || justClicked;
 
-  // Fire Web Animations API directly — no CSS keyframe dependency
+  // Button pulse animation
   useEffect(() => {
     if (!justClicked || !btnRef.current) return;
     btnRef.current.animate(
@@ -32,6 +67,7 @@ export function AppliedButton({ isApplied, disabled, onClick, size = "sm" }: App
   function handleClick() {
     if (showApplied || disabled) return;
     setJustClicked(true);
+    fireConfetti();
     onClick();
   }
 
