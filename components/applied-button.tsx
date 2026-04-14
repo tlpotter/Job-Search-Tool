@@ -10,38 +10,33 @@ interface AppliedButtonProps {
   size?: "sm" | "md";
 }
 
+function burst(x: number, y: number, colors: string[]) {
+  confetti({
+    particleCount: 70,
+    spread: 360,
+    origin: { x, y },
+    startVelocity: 28,
+    gravity: 0.6,
+    scalar: 0.75,
+    ticks: 180,
+    shapes: ["circle"],
+    colors,
+  });
+}
+
 function fireConfetti() {
-  // Two cannon bursts from the top corners
-  confetti({
-    particleCount: 80,
-    spread: 70,
-    origin: { x: 0.1, y: 0.1 },
-    colors: ["#22c55e", "#16a34a", "#86efac", "#ffffff", "#fbbf24"],
-    startVelocity: 55,
-    gravity: 0.8,
-    ticks: 200,
-  });
-  confetti({
-    particleCount: 80,
-    spread: 70,
-    origin: { x: 0.9, y: 0.1 },
-    colors: ["#22c55e", "#16a34a", "#86efac", "#ffffff", "#fbbf24"],
-    startVelocity: 55,
-    gravity: 0.8,
-    ticks: 200,
-  });
-  // A third burst from the center for good measure
-  setTimeout(() => {
-    confetti({
-      particleCount: 50,
-      spread: 100,
-      origin: { x: 0.5, y: 0.2 },
-      colors: ["#22c55e", "#3b82f6", "#f59e0b", "#ec4899", "#ffffff"],
-      startVelocity: 40,
-      gravity: 0.9,
-      ticks: 180,
-    });
-  }, 150);
+  // Staggered firework bursts across the top of the screen
+  const PALETTE_A = ["#ff4444", "#ff8800", "#ffdd00", "#ffffff"];
+  const PALETTE_B = ["#22c55e", "#00cfff", "#a855f7", "#ffffff"];
+  const PALETTE_C = ["#f472b6", "#fbbf24", "#60a5fa", "#ffffff"];
+
+  burst(0.25, 0.25, PALETTE_A);
+
+  setTimeout(() => burst(0.75, 0.2, PALETTE_B), 200);
+  setTimeout(() => burst(0.5,  0.15, PALETTE_C), 400);
+  setTimeout(() => burst(0.15, 0.35, PALETTE_B), 550);
+  setTimeout(() => burst(0.85, 0.3,  PALETTE_A), 700);
+  setTimeout(() => burst(0.5,  0.28, PALETTE_A), 900);
 }
 
 export function AppliedButton({ isApplied, disabled, onClick, size = "sm" }: AppliedButtonProps) {
