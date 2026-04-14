@@ -2,8 +2,20 @@ import { createHash } from "crypto";
 import { supabase } from "../supabase";
 import { JobListing } from "./types";
 
+function normalizeUrl(url: string): string {
+  try {
+    const u = new URL(url.trim());
+    // Strip UTM and other tracking params that create false duplicates
+    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+     "ref", "source", "via", "referrer"].forEach((p) => u.searchParams.delete(p));
+    return u.toString();
+  } catch {
+    return url.trim();
+  }
+}
+
 export function generateId(job: Pick<JobListing, "company" | "title" | "url">): string {
-  const raw = `${job.company.toLowerCase().trim()}|${job.title.toLowerCase().trim()}|${job.url.trim()}`;
+  const raw = `${job.company.toLowerCase().trim()}|${job.title.toLowerCase().trim()}|${normalizeUrl(job.url)}`;
   return createHash("sha256").update(raw).digest("hex").slice(0, 16);
 }
 
