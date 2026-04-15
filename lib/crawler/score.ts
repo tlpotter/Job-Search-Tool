@@ -39,8 +39,8 @@ export function scoreListing(job: JobListing): JobListing {
   const b2bTerms = ["enterprise", "b2b", "for businesses", "for companies", "for teams", "business customers", "smb", "mid-market", "fortune 500", "corporate clients", "saas", "software as a service", "internal tools", "internal tool", "business owners", "small business", "admin dashboard", "operations platform", "underwriting", "procurement", "erp", "crm platform", "hr platform", "payroll platform"];
   const isSaaS = desc.includes("saas") || desc.includes("software as a service");
   const isB2B = b2bTerms.some((t) => desc.includes(t));
-  if (isSaaS) score += 12;
-  else if (isB2B) score += 10;
+  if (isSaaS) score += 24;
+  else if (isB2B) score += 20;
 
   const aiInTitle = /\bai\b|artificial intelligence|machine learning|llm/.test(title);
   if (aiInTitle) score += 15;
