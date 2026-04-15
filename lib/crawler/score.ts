@@ -98,6 +98,7 @@ export function scoreListing(job: JobListing): JobListing {
     "design systems designer", "design ops", "designops",
     "graphic designer", "visual designer", "ui developer",
     "brand designer", "motion designer", "game designer", "marketing designer",
+    "learning", "instructional",
     ...searchConfig.excludeTerms,
   ];
   const hasExcludedTitle = excludedTitleTerms.some((t) => title.includes(t));
