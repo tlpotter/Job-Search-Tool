@@ -93,7 +93,8 @@ export const adzunaSource: JobSource = {
 
     const PHOENIX_LOCATIONS = ["Phoenix, AZ", "Scottsdale, AZ", "Tempe, AZ", "Chandler, AZ"];
 
-    const MAX_PAGES = 20;
+    const MAX_PAGES = 5;
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
     const seen = new Set<string>();
     const results: JobListing[] = [];
 
@@ -101,6 +102,7 @@ export const adzunaSource: JobSource = {
       for (let page = 1; page <= MAX_PAGES; page++) {
       try {
         const jobs = await fetchAdzunaPage(query, page, appId, apiKey);
+        await sleep(2500); // stay under 25 req/min rate limit
         if (jobs.length === 0) break; // no more results for this query
         for (const job of jobs) {
           // Skip jobs missing required fields that would crash generateId
@@ -147,6 +149,7 @@ export const adzunaSource: JobSource = {
         for (let page = 1; page <= 3; page++) {
           try {
             const jobs = await fetchAdzunaPage(query, page, appId, apiKey, location);
+            await sleep(2500); // stay under 25 req/min rate limit
             if (jobs.length === 0) break;
             for (const job of jobs) {
               if (!job.title || !job.company?.display_name || !job.redirect_url) continue;
