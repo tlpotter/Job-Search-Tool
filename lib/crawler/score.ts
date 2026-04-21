@@ -93,8 +93,8 @@ export function scoreListing(job: JobListing): JobListing {
   else if (redFlagCount === 1) score -= 8;
 
   // PENALTIES
-  // Hard exclusions — completely wrong profession (title-only)
-  const wrongProfessionTerms = [
+  // Hard exclusions — completely wrong profession
+  const wrongProfessionTitleTerms = [
     "floral", "flower", "florist",
     "interior designer", "interior design",
     "fashion designer", "textile designer", "apparel designer",
@@ -102,8 +102,21 @@ export function scoreListing(job: JobListing): JobListing {
     "furniture designer", "industrial designer",
     "architect", "architectural",
   ];
-  const isWrongProfession = wrongProfessionTerms.some((t) => title.includes(t));
-  if (isWrongProfession) score -= 50;
+  const isWrongProfessionTitle = wrongProfessionTitleTerms.some((t) => title.includes(t));
+  if (isWrongProfessionTitle) score -= 50;
+
+  // Wrong profession signals in description — catches generic titles like "senior designer" applied to non-UX roles
+  const descBody = (job.description ?? "").toLowerCase();
+  const wrongProfessionDescTerms = [
+    "floral design", "floral arrangement", "flower arrangement", "florist",
+    "interior design", "interior decorat",
+    "fashion design", "apparel design", "textile design",
+    "jewelry design", "landscape design",
+    "wedding design", "event design", "event decor",
+    "print design", "packaging design",
+  ];
+  const isWrongProfessionDesc = wrongProfessionDescTerms.some((t) => descBody.includes(t));
+  if (isWrongProfessionDesc) score -= 50;
 
   // Excluded terms are title-only — description mentions are normal at Staff level
   const excludedTitleTerms = [
