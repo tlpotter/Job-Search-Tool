@@ -162,7 +162,11 @@ export function JobFeed() {
   const HIDDEN_STATUSES = new Set(["not_interested", "applied", "hidden", "passed"]);
 
   const visibleJobs = (jobs as Record<string, unknown>[]).filter((j) => {
-    if (HIDDEN_STATUSES.has((j.user_actions as Record<string, unknown> | null)?.status as string)) return false;
+    const ua = j.user_actions;
+    const status = Array.isArray(ua)
+      ? (ua[0] as Record<string, unknown> | undefined)?.status
+      : (ua as Record<string, unknown> | null)?.status;
+    if (HIDDEN_STATUSES.has(status as string)) return false;
     const loc = ((j.location as string) ?? "").toLowerCase();
     const desc = ((j.description as string) ?? "").toLowerCase();
     if (filters.localPhoenix) {
