@@ -25,7 +25,6 @@ export async function GET(request: NextRequest) {
   const sortBy = searchParams.get("sortBy") ?? "relevance_score";
   const offset = parseInt(searchParams.get("offset") ?? "0");
 
-  // Exclude description — only needed on detail page, too large for feed
   const SELECT_FIELDS = `
     id, title, company, location, remote, url,
     salary, estimated_salary, salary_source, salary_below_floor,
@@ -33,6 +32,7 @@ export async function GET(request: NextRequest) {
     source, role_type, company_size, has_equity, has_benefits_info,
     mentions_design_systems, mentions_ai, is_agency,
     company_rating, company_red_flags, company_growth_trend, company_reputation_available,
+    description,
     user_actions (status, bookmarked, notes)
   `;
 
