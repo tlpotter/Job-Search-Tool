@@ -81,7 +81,7 @@ export const searchConfig: SearchConfig = {
   },
 
   salaryFloor: 140_000,
-  emailTo: "tedpotter23@gmail.com",
+  emailTo: process.env.EMAIL_TO ?? "",
 };
 
 export const salaryEstimates: Record<string, Record<string, string>> = {

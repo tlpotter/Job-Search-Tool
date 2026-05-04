@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { useIsDemo } from "./session-provider";
 
 export const COLUMNS = [
   { key: "save_for_later", label: "Saved", color: "bg-blue-50 border-blue-200", headerColor: "text-blue-700" },
@@ -30,6 +31,7 @@ interface TrackerBoardProps {
 }
 
 export function TrackerBoard({ initialItems }: TrackerBoardProps) {
+  const isDemo = useIsDemo();
   const [items, setItems] = useState<TrackerItem[]>(initialItems);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverCol, setDragOverCol] = useState<string | null>(null);
@@ -38,6 +40,10 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
   const byStatus = (colKey: string) => items.filter((i) => i.status === colKey);
 
   function onDragStart(e: React.DragEvent, item: TrackerItem) {
+    if (isDemo) {
+      e.preventDefault();
+      return;
+    }
     dragItem.current = item;
     setDraggingId(item.listing_id);
 
@@ -140,10 +146,10 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
                 {colItems.map((item) => (
                   <div
                     key={item.listing_id}
-                    draggable
+                    draggable={!isDemo}
                     onDragStart={(e) => onDragStart(e, item)}
                     onDragEnd={onDragEnd}
-                    className={`bg-white border border-gray-200 rounded-lg p-3 cursor-grab active:cursor-grabbing transition-all select-none ${
+                    className={`bg-white border border-gray-200 rounded-lg p-3 ${isDemo ? "cursor-default" : "cursor-grab active:cursor-grabbing"} transition-all select-none ${
                       draggingId === item.listing_id ? "opacity-40 scale-95" : "hover:shadow-sm"
                     }`}
                   >

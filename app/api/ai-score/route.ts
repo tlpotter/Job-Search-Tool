@@ -1,10 +1,14 @@
 import { NextRequest } from "next/server";
 import { supabase } from "@/lib/supabase";
 import { aiRankListing } from "@/lib/crawler/ai-rank";
+import { requireOwner } from "@/lib/auth-server";
 import * as fs from "fs";
 import * as path from "path";
 
 export async function POST(request: NextRequest) {
+  const sessionOrResponse = await requireOwner();
+  if (sessionOrResponse instanceof Response) return sessionOrResponse;
+
   const { listingId } = await request.json();
   if (!listingId) {
     return Response.json({ error: "listingId required" }, { status: 400 });

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ScoreBadge } from "./score-badge";
+import { useIsDemo } from "./session-provider";
 
 interface AiScoreResult {
   fitScore: number;
@@ -23,6 +24,7 @@ export function AiScoreButton({
   initialGaps?: string[] | null;
   initialHighlights?: string[] | null;
 }) {
+  const isDemo = useIsDemo();
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<AiScoreResult | null>(
     initialScore != null
@@ -62,14 +64,16 @@ export function AiScoreButton({
           <h2 className="font-semibold text-base-content">AI Fit Analysis</h2>
           <div className="flex items-center gap-2">
             <ScoreBadge score={result.fitScore} label="AI Fit" />
-            <button
-              onClick={runScore}
-              disabled={loading}
-              className="btn btn-ghost btn-xs text-base-content/50"
-              title="Re-run AI scoring"
-            >
-              {loading ? "..." : "↺"}
-            </button>
+            {!isDemo && (
+              <button
+                onClick={runScore}
+                disabled={loading}
+                className="btn btn-ghost btn-xs text-base-content/50"
+                title="Re-run AI scoring"
+              >
+                {loading ? "..." : "↺"}
+              </button>
+            )}
           </div>
         </div>
 
@@ -107,6 +111,8 @@ export function AiScoreButton({
       </div>
     );
   }
+
+  if (isDemo) return null;
 
   return (
     <div className="card card-bordered bg-base-200 p-5">

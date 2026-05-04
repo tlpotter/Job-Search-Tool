@@ -6,6 +6,7 @@ import { CompanyHealthBadge } from "@/components/company-health-badge";
 import { ScoreBadge } from "@/components/score-badge";
 import { AiScoreButton } from "@/components/ai-score-button";
 import { ListingActions } from "@/components/listing-actions";
+import { AppHeader } from "@/components/app-header";
 import { cleanDescription } from "@/lib/utils/clean-description";
 
 export default async function ListingPage({
@@ -42,19 +43,11 @@ export default async function ListingPage({
 
   return (
     <div className="min-h-screen bg-base-200">
-      <div className="navbar bg-base-100 border-b border-base-300 px-6">
-        <div className="navbar-start">
-          <Link href="/" className="btn btn-ghost btn-sm text-primary">← Back</Link>
-          <span className="mx-3 text-base-content/20">·</span>
-          <span className="text-base font-semibold">UX Job Crawler</span>
-        </div>
-        <div className="navbar-end gap-2">
-          <Link href="/" className="btn btn-ghost btn-sm text-base-content/60">Feed</Link>
-          <Link href="/tracker" className="btn btn-ghost btn-sm text-base-content/60">Tracker</Link>
-        </div>
+      <AppHeader />
+      <div className="max-w-4xl mx-auto px-6 pt-3">
+        <Link href="/" className="text-sm text-primary hover:underline">← Back to feed</Link>
       </div>
-
-      <div className="max-w-4xl mx-auto px-6 py-8 space-y-6">
+      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
 
         {/* Header card */}
         <div className="card card-bordered bg-base-100 p-6">

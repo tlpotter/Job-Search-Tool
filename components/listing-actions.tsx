@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppliedButton } from "./applied-button";
+import { useIsDemo } from "./session-provider";
 
 const STATUS_OPTIONS = [
   { value: "not_reviewed", label: "Not reviewed" },
@@ -24,8 +25,10 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
   const [status, setStatus] = useState(initialStatus ?? "not_reviewed");
   const [saving, setSaving] = useState(false);
   const router = useRouter();
+  const isDemo = useIsDemo();
 
   async function updateStatus(newStatus: string) {
+    if (isDemo) return;
     setSaving(true);
     setStatus(newStatus);
     await fetch("/api/actions", {
@@ -36,6 +39,21 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
     setSaving(false);
     if (newStatus === "not_interested") router.push("/");
     if (newStatus === "applied") setTimeout(() => router.push("/"), 800);
+  }
+
+  if (isDemo) {
+    return (
+      <div className="flex items-center gap-2 flex-wrap">
+        <a
+          href={applyUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn btn-primary btn-sm"
+        >
+          View posting →
+        </a>
+      </div>
+    );
   }
 
   return (

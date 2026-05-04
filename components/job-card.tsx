@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ScoreBadge } from "./score-badge";
 import { AppliedButton } from "./applied-button";
+import { useIsDemo } from "./session-provider";
 import { cleanDescription } from "@/lib/utils/clean-description";
 
 interface JobCardProps {
@@ -175,6 +176,7 @@ function ScoreOverlay({ job, onClose }: { job: JobCardProps["job"]; onClose: () 
 export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
   const [showScoreOverlay, setShowScoreOverlay] = useState(false);
   const router = useRouter();
+  const isDemo = useIsDemo();
   const score = job.relevance_score ?? 0;
   const status = job.user_actions?.status ?? "not_reviewed";
   const bookmarked = job.user_actions?.bookmarked ?? false;
@@ -338,36 +340,38 @@ export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
           </div>
 
           {/* Bottom action row */}
-          <div className="flex items-center justify-between gap-3 mt-4">
-            <select
-              value={status}
-              onChange={(e) => onStatusChange?.(job.id, e.target.value)}
-              className="select select-bordered select-xs border-base-300 w-auto"
+          <div className="flex items-center justify-end gap-3 mt-4">
+            {!isDemo && (
+              <>
+                <select
+                  value={status}
+                  onChange={(e) => onStatusChange?.(job.id, e.target.value)}
+                  className="select select-bordered select-xs border-base-300 w-auto mr-auto"
+                >
+                  {statusOptions.map((s) => (
+                    <option key={s} value={s}>{statusLabels[s]}</option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => onStatusChange?.(job.id, "not_interested")}
+                  className={`btn btn-sm ${status === "not_interested" ? "btn-error btn-outline" : "btn-ghost border border-base-300"}`}
+                >
+                  Not a Fit
+                </button>
+                <AppliedButton
+                  isApplied={status === "applied"}
+                  onClick={() => onStatusChange?.(job.id, "applied")}
+                />
+              </>
+            )}
+            <a
+              href={job.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-primary btn-sm"
             >
-              {statusOptions.map((s) => (
-                <option key={s} value={s}>{statusLabels[s]}</option>
-              ))}
-            </select>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => onStatusChange?.(job.id, "not_interested")}
-                className={`btn btn-sm ${status === "not_interested" ? "btn-error btn-outline" : "btn-ghost border border-base-300"}`}
-              >
-                Not a Fit
-              </button>
-              <AppliedButton
-                isApplied={status === "applied"}
-                onClick={() => onStatusChange?.(job.id, "applied")}
-              />
-              <a
-                href={job.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary btn-sm"
-              >
-                Apply →
-              </a>
-            </div>
+              {isDemo ? "View posting →" : "Apply →"}
+            </a>
           </div>
         </div>
       </div>

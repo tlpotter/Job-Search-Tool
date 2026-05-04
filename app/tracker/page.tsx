@@ -1,8 +1,8 @@
 export const dynamic = "force-dynamic";
 
 import { supabase } from "@/lib/supabase";
-import Link from "next/link";
 import { TrackerBoard, TrackerItem } from "@/components/tracker-board";
+import { AppHeader } from "@/components/app-header";
 
 export default async function TrackerPage() {
   const { data: actions } = await supabase
@@ -27,18 +27,7 @@ export default async function TrackerPage() {
 
   return (
     <div className="min-h-screen bg-base-200 flex flex-col">
-      <div className="navbar bg-base-100 border-b border-base-300 px-6 shrink-0">
-        <div className="navbar-start">
-          <span className="text-base font-semibold">UX Job Crawler</span>
-          <span className="mx-3 text-base-content/20">·</span>
-          <span className="text-sm text-base-content/50">Application Tracker</span>
-        </div>
-        <div className="navbar-end gap-2">
-          <Link href="/" className="btn btn-ghost btn-sm text-base-content/60">Feed</Link>
-          <Link href="/tracker" className="btn btn-ghost btn-sm font-medium">Tracker</Link>
-        </div>
-      </div>
-
+      <AppHeader />
       <div className="flex-1 px-6 py-6">
         <TrackerBoard initialItems={items} />
       </div>

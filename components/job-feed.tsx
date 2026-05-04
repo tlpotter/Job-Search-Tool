@@ -4,8 +4,10 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { JobCard } from "./job-card";
 import { JobCardSkeleton } from "./job-card-skeleton";
 import { FilterSidebar, Filters, DEFAULT_FILTERS } from "./filter-sidebar";
+import { useIsDemo } from "./session-provider";
 
 export function JobFeed() {
+  const isDemo = useIsDemo();
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [jobs, setJobs] = useState<unknown[]>([]);
   const [total, setTotal] = useState(0);
@@ -105,6 +107,7 @@ export function JobFeed() {
   }, [hasMore, loading, loadingMore, filters, offset, fetchMore]);
 
   async function handleStatusChange(id: string, status: string) {
+    if (isDemo) return;
     await fetch("/api/actions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -140,6 +143,7 @@ export function JobFeed() {
   }
 
   async function handleBookmark(id: string, bookmarked: boolean) {
+    if (isDemo) return;
     await fetch("/api/actions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
