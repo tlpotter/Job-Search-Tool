@@ -76,6 +76,11 @@ export async function sendDigest(): Promise<void> {
     return;
   }
 
+  if (!searchConfig.emailTo) {
+    console.warn("Resend: missing EMAIL_TO env var, skipping email");
+    return;
+  }
+
   const listings = await fetchTopListingsFromDb();
 
   if (listings.length === 0) {
