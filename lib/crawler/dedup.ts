@@ -28,6 +28,7 @@ function fuzzyKey(job: JobListing): string {
 
 const BLOCKED_DOMAINS = [
   "liveblog365.com",
+  "remote.co",
 ];
 
 export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
