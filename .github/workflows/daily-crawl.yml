@@ -1,9 +1,7 @@
 name: Daily Job Crawl
 
 on:
-  schedule:
-    - cron: "0 13 * * *"  # 1 PM UTC = 6 AM MST (Arizona)
-  workflow_dispatch:
+  workflow_dispatch:  # triggered by cron-job.org at 6 AM MST
 
 jobs:
   crawl:
