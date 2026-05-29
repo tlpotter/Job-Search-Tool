@@ -63,7 +63,7 @@ export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
     .select("title, company, user_actions(status)")
     .in("company", companies.slice(0, 500));
 
-  const ACTIONED_STATUSES = new Set(["applied", "not_interested", "hidden", "passed"]);
+  const ACTIONED_STATUSES = new Set(["applied", "not_interested", "hidden", "passed", "zombie_listing"]);
 
   const existingFuzzyKeys = new Set(
     (existingByCompany ?? []).map((r: { title: string; company: string }) =>

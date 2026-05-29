@@ -118,7 +118,7 @@ export function JobFeed() {
       setTimeout(() => {
         setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
       }, 700);
-    } else if (status === "hidden" || status === "not_interested" || status === "passed") {
+    } else if (status === "hidden" || status === "not_interested" || status === "passed" || status === "zombie_listing") {
       const el = cardRefs.current.get(id);
       const remove = () => setJobs((prev) => (prev as Record<string, unknown>[]).filter((j) => j.id !== id));
       if (el) {
@@ -163,7 +163,7 @@ export function JobFeed() {
   const PHOENIX_UNAMBIGUOUS = ["phoenix", "scottsdale", "tempe", "arizona", ", az", "(az)", " az "];
   // Ambiguous city names shared with other states — only match if AZ context also present
   const PHOENIX_AMBIGUOUS = ["mesa", "chandler", "gilbert", "glendale", "peoria", "surprise"];
-  const HIDDEN_STATUSES = new Set(["not_interested", "applied", "hidden", "passed"]);
+  const HIDDEN_STATUSES = new Set(["not_interested", "applied", "hidden", "passed", "zombie_listing"]);
 
   const visibleJobs = (jobs as Record<string, unknown>[]).filter((j) => {
     const ua = j.user_actions;

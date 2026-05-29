@@ -13,6 +13,7 @@ const STATUS_OPTIONS = [
   { value: "offer", label: "Offer" },
   { value: "rejected", label: "Rejected" },
   { value: "not_interested", label: "Not Interested / Not a Fit" },
+  { value: "zombie_listing", label: "🧟 Zombie Listing" },
 ];
 
 interface ListingActionsProps {
@@ -37,7 +38,7 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
       body: JSON.stringify({ listingId, status: newStatus }),
     });
     setSaving(false);
-    if (newStatus === "not_interested") router.push("/");
+    if (newStatus === "not_interested" || newStatus === "zombie_listing") router.push("/");
     if (newStatus === "applied") setTimeout(() => router.push("/"), 800);
   }
 
@@ -75,6 +76,15 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
         className={`btn btn-sm ${status === "not_interested" ? "btn-error btn-outline" : "btn-ghost border border-base-300"}`}
       >
         Not Interested
+      </button>
+
+      <button
+        onClick={() => updateStatus("zombie_listing")}
+        disabled={saving}
+        className={`btn btn-sm ${status === "zombie_listing" ? "btn-warning btn-outline" : "btn-ghost border border-base-300"}`}
+        title="Listing is dead/expired"
+      >
+        🧟 Zombie
       </button>
 
       <AppliedButton

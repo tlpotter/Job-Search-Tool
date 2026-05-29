@@ -44,7 +44,7 @@ interface JobCardProps {
   onBookmark?: (id: string, bookmarked: boolean) => void;
 }
 
-const statusOptions = ["not_reviewed", "save_for_later", "applied", "interviewing", "offer", "rejected", "not_interested"];
+const statusOptions = ["not_reviewed", "save_for_later", "applied", "interviewing", "offer", "rejected", "not_interested", "zombie_listing"];
 const statusLabels: Record<string, string> = {
   not_reviewed: "Not reviewed",
   save_for_later: "Save for Later",
@@ -53,6 +53,7 @@ const statusLabels: Record<string, string> = {
   offer: "Offer",
   rejected: "Rejected",
   not_interested: "Not Interested / Not a Fit",
+  zombie_listing: "🧟 Zombie Listing",
 };
 
 function glassdoorUrl(company: string) {
@@ -357,6 +358,13 @@ export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
                   className={`btn btn-sm ${status === "not_interested" ? "btn-error btn-outline" : "btn-ghost border border-base-300"}`}
                 >
                   Not a Fit
+                </button>
+                <button
+                  onClick={() => onStatusChange?.(job.id, "zombie_listing")}
+                  className={`btn btn-sm ${status === "zombie_listing" ? "btn-warning btn-outline" : "btn-ghost border border-base-300"}`}
+                  title="Listing is dead/expired"
+                >
+                  🧟 Zombie
                 </button>
                 <AppliedButton
                   isApplied={status === "applied"}

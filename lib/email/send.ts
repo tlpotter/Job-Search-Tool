@@ -4,7 +4,7 @@ import { composeEmail } from "./compose";
 import { searchConfig } from "../config";
 import { supabase } from "../supabase";
 
-const HIDDEN_STATUSES = new Set(["applied", "not_interested", "hidden", "passed"]);
+const HIDDEN_STATUSES = new Set(["applied", "not_interested", "hidden", "passed", "zombie_listing"]);
 
 async function fetchTopListingsFromDb(): Promise<JobListing[]> {
   // Pull top AI-scored listings, with their user_actions status
