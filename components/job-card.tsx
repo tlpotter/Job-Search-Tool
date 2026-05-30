@@ -7,6 +7,9 @@ import { ScoreBadge } from "./score-badge";
 import { AppliedButton } from "./applied-button";
 import { useIsDemo } from "./session-provider";
 import { cleanDescription } from "@/lib/utils/clean-description";
+import { Badge, type BadgeVariant } from "@/components/ui/badge";
+import { Select } from "@/components/ui/input";
+import { Button, LinkButton } from "@/components/ui/button";
 
 interface JobCardProps {
   job: {
@@ -44,7 +47,16 @@ interface JobCardProps {
   onBookmark?: (id: string, bookmarked: boolean) => void;
 }
 
-const statusOptions = ["not_reviewed", "save_for_later", "applied", "interviewing", "offer", "rejected", "not_interested", "zombie_listing"];
+const statusOptions = [
+  "not_reviewed",
+  "save_for_later",
+  "applied",
+  "interviewing",
+  "offer",
+  "rejected",
+  "not_interested",
+  "zombie_listing",
+];
 const statusLabels: Record<string, string> = {
   not_reviewed: "Not reviewed",
   save_for_later: "Save for Later",
@@ -70,13 +82,11 @@ function formatPostedDate(dateStr?: string | null): string {
   return `${Math.floor(days / 30)}mo ago`;
 }
 
-function Chip({ emoji, label, tooltip }: { emoji: string; label: string; tooltip: string }) {
+function Chip({ emoji, label, variant = "default", tooltip }: { emoji: string; label: string; variant?: BadgeVariant; tooltip: string }) {
   return (
-    <div className="tooltip tooltip-top" data-tip={tooltip}>
-      <span className="badge badge-ghost badge-sm gap-1 cursor-default text-xs font-normal">
-        {emoji} {label}
-      </span>
-    </div>
+    <Badge variant={variant} title={tooltip} className="cursor-default normal-case tracking-[0.06em]">
+      <span aria-hidden>{emoji}</span> {label}
+    </Badge>
   );
 }
 
@@ -125,62 +135,73 @@ function ScoreOverlay({ job, onClose }: { job: JobCardProps["job"]; onClose: () 
   if (job.salary_below_floor && job.salary_source === "estimated") factors.push({ label: "Estimated salary below $140K", value: -8, positive: false });
 
   return (
-    <div className="modal modal-open">
-      <div className="modal-box max-w-md" onClick={(e) => e.stopPropagation()}>
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <h3 className="font-semibold text-base">Score Breakdown</h3>
-            <p className="text-sm text-base-content/60 mt-0.5">{job.title} · {job.company}</p>
+    <div
+      className="fixed inset-0 z-[100] flex items-center justify-center px-4 py-10 bg-[rgba(2,6,8,0.7)] backdrop-blur-sm"
+      onClick={onClose}
+    >
+      <div
+        className="glass rounded-2xl max-w-md w-full p-6"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div className="min-w-0">
+            <div className="eyebrow mb-2 !text-[11px]">Score Breakdown</div>
+            <p className="font-serif text-[18px] font-semibold leading-snug truncate text-white">{job.title}</p>
+            <p className="text-[13px] text-white/55 mt-0.5 truncate">{job.company}</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <ScoreBadge score={score} />
-            <button onClick={onClose} className="btn btn-sm btn-ghost btn-circle">✕</button>
+            <button
+              onClick={onClose}
+              className="w-7 h-7 inline-flex items-center justify-center rounded-md text-white/50 hover:text-white hover:bg-white/10 transition-colors"
+              aria-label="Close"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
-        <div className="divide-y divide-base-content/10 max-h-80 overflow-y-auto">
+        <div className="max-h-80 overflow-y-auto divide-y divide-white/[0.06]">
           {factors.length === 0 && (
-            <p className="text-sm text-base-content/40 text-center py-6">No scored factors found.</p>
+            <p className="text-sm text-white/40 text-center py-6">No scored factors found.</p>
           )}
           {factors.map((f, i) => (
-            <div key={i} className="flex items-center justify-between gap-3 py-2 text-sm">
-              <span className="text-base-content/80">{f.label}</span>
-              <span className={`font-semibold shrink-0 ${f.positive ? "text-success" : "text-error"}`}>
+            <div key={i} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+              <span className="text-white/75">{f.label}</span>
+              <span className={`font-semibold shrink-0 ${f.positive ? "text-[rgba(134,239,172,1)]" : "text-[rgba(255,180,180,.95)]"}`}>
                 {f.positive ? "+" : ""}{f.value}
               </span>
             </div>
           ))}
         </div>
 
-        <div className="modal-action mt-4 pt-3 border-t border-base-content/10 flex items-center justify-between">
-          <span className="text-sm text-base-content/60">Total score</span>
+        <div className="mt-5 pt-4 border-t border-white/[0.06] flex items-center justify-between">
+          <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45">Total score</span>
           <ScoreBadge score={score} />
         </div>
 
         {job.ai_fit_score != null && (
           <div className="flex items-center justify-between mt-2">
-            <span className="text-sm text-base-content/60">AI fit score</span>
+            <span className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45">AI fit score</span>
             <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
           </div>
         )}
         {job.ai_fit_summary && (
-          <p className="mt-3 text-sm text-base-content/60 italic border-l-2 border-primary/30 pl-3 leading-snug">
+          <p className="mt-4 text-sm text-white/65 italic font-serif font-light border-l-2 border-[rgba(56,189,248,.3)] pl-3 leading-relaxed">
             {job.ai_fit_summary}
           </p>
         )}
       </div>
-      <div className="modal-backdrop" onClick={onClose} />
     </div>
   );
 }
 
-export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
+export function JobCard({ job, onStatusChange }: JobCardProps) {
   const [showScoreOverlay, setShowScoreOverlay] = useState(false);
   const router = useRouter();
   const isDemo = useIsDemo();
   const score = job.relevance_score ?? 0;
   const status = job.user_actions?.status ?? "not_reviewed";
-  const bookmarked = job.user_actions?.bookmarked ?? false;
   const desc = ((job.description ?? "") + " " + job.title).toLowerCase();
 
   const benefitsKeywords = ["health insurance", "dental", "vision", "401k", "401(k)", "pto", "paid time off", "parental leave", "wellness", "learning budget", "professional development"];
@@ -234,153 +255,178 @@ export function JobCard({ job, onStatusChange, onBookmark }: JobCardProps) {
       {showScoreOverlay && <ScoreOverlay job={job} onClose={() => setShowScoreOverlay(false)} />}
 
       <div
-        className="card card-bordered bg-base-100 shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-150 cursor-pointer"
+        className="glass glass-hover rounded-[18px] p-6 cursor-pointer relative overflow-hidden"
         onClick={(e) => {
-          // Don't navigate if clicking a button, link, or select inside the card
           if ((e.target as HTMLElement).closest("a, button, select")) return;
           router.push(`/listing/${job.id}`);
         }}
       >
-        <div className="card-body p-5">
-          <div className="flex items-start justify-between gap-4">
-            <div className="flex-1 min-w-0">
+        {/* Subtle warm radial halo on hover (matches portfolio work-card pattern) */}
+        <span
+          aria-hidden
+          className="absolute inset-0 pointer-events-none opacity-0 hover:opacity-100 transition-opacity duration-300"
+          style={{
+            background:
+              "radial-gradient(ellipse at 50% 0%, rgba(251,146,60,.05), transparent 60%)",
+          }}
+        />
 
-              {/* Title */}
-              <div className="mb-1">
-                <Link href={`/listing/${job.id}`} className="link link-hover text-[15px] font-semibold text-primary leading-snug">
-                  {job.title}
-                </Link>
-              </div>
-
-              {/* Company row */}
-              <div className="flex items-center flex-wrap gap-x-2 gap-y-1 mb-3">
-                <a
-                  href={`https://www.google.com/search?q=${encodeURIComponent(job.company + " official website")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm font-medium text-base-content hover:text-primary transition-colors"
-                >
-                  {job.company}
-                </a>
-                {job.company_size && job.company_size !== "unknown" && (
-                  <span className="text-xs text-base-content/60 capitalize">· {job.company_size}</span>
-                )}
-                <a
-                  href={glassdoorUrl(job.company)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-base-content/60 hover:text-success transition-colors"
-                >
-                  Glassdoor ↗
-                </a>
-                {job.company_rating != null && (
-                  <span className="text-xs text-base-content/70">
-                    {job.company_rating}★
-                    {(job.company_red_flags?.length ?? 0) > 0 && (
-                      <span className="text-warning ml-1" title={job.company_red_flags?.join(", ")}>⚠</span>
-                    )}
-                  </span>
-                )}
-              </div>
-
-              {/* Meta */}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-base-content/80 mb-3">
-                {job.remote ? <span>🌎 Remote</span> : job.location && <span>📍 {job.location}</span>}
-                {salaryDisplay && (
-                  <span className={job.salary_below_floor ? "text-warning font-medium" : "text-base-content/80 font-medium"}>
-                    💰 {salaryDisplay}
-                  </span>
-                )}
-                {job.posted_date && <span>🗓 {formatPostedDate(job.posted_date)}</span>}
-                <span className="capitalize text-base-content/50 text-xs">{job.source}</span>
-              </div>
-
-              {/* Chips */}
-              <div className="flex flex-wrap gap-1.5">
-                {detectedIndustry && <Chip emoji={detectedIndustry.emoji} label={detectedIndustry.label} tooltip={`Industry: ${detectedIndustry.label}`} />}
-                {businessModel && <Chip emoji={businessModel.emoji} label={businessModel.label} tooltip={`Business model: ${businessModel.label}`} />}
-                {job.has_benefits_info && <Chip emoji="🔥" label="Benefits" tooltip={`Found: ${matchedTerms(benefitsKeywords)} · +12 pts`} />}
-                {job.has_equity && <Chip emoji="📈" label="Equity" tooltip={`Found: ${matchedTerms(equityKeywords)} · +10 pts`} />}
-                {job.mentions_design_systems && <Chip emoji="🧩" label="Design Systems" tooltip={`Found: ${matchedTerms(designSystemsKeywords)} · +15 pts`} />}
-                {job.mentions_ai && <Chip emoji="🤖" label="AI" tooltip={`Found: ${matchedTerms(aiKeywords)} · +5 pts`} />}
-                {job.role_type === "ic" && <Chip emoji="👤" label="IC" tooltip={`"individual contributor" or "no direct reports" found · +3 pts`} />}
-                {job.role_type === "management" && <Chip emoji="👥" label="Management" tooltip={`"manage" or "direct reports" found in listing`} />}
-                {job.is_agency && <Chip emoji="🏷️" label="Agency" tooltip={`Found: ${matchedTerms(agencyKeywords)} · -10 pts`} />}
-                {job.salary_below_floor && (
-                  <Chip emoji="⚠️" label="Low salary" tooltip={`${salaryDisplay} is below $140K floor · ${job.salary_source === "listed" ? "-15" : "-8"} pts`} />
-                )}
-              </div>
-
-              {/* AI description summary */}
-              {job.ai_description_summary && (
-                <p className="mt-4 text-sm text-base-content/70 leading-snug">
-                  {cleanDescription(job.ai_description_summary)}
-                </p>
-              )}
-
-              {/* AI fit summary */}
-              {job.ai_fit_summary && (
-                <p className="mt-3 mb-2 text-sm text-base-content/60 italic border-l-2 border-primary/20 pl-2.5 leading-snug">
-                  {cleanDescription(job.ai_fit_summary)}
-                </p>
+        <div className="relative flex items-start justify-between gap-5">
+          <div className="flex-1 min-w-0">
+            {/* Source eyebrow */}
+            <div className="flex items-center gap-3 mb-3">
+              <span className="text-[10px] font-bold tracking-[0.18em] uppercase text-white/40">
+                {job.source}
+              </span>
+              {job.posted_date && (
+                <span className="text-[10px] font-medium tracking-[0.1em] uppercase text-white/30">
+                  · {formatPostedDate(job.posted_date)}
+                </span>
               )}
             </div>
 
-            {/* Right column — scores only */}
-            <div className="flex flex-col items-end gap-2.5 shrink-0">
-              <button
-                onClick={() => setShowScoreOverlay(true)}
-                className="flex items-center gap-1 cursor-pointer group"
-                title="Click for score breakdown"
-              >
-                <ScoreBadge score={score} size="sm" />
-                {job.ai_fit_score != null && <ScoreBadge score={job.ai_fit_score} label="AI" size="sm" />}
-                <span className="text-base-content/20 group-hover:text-base-content/50 text-xs transition-colors">ⓘ</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Bottom action row */}
-          <div className="flex items-center justify-end gap-3 mt-4">
-            {!isDemo && (
-              <>
-                <select
-                  value={status}
-                  onChange={(e) => onStatusChange?.(job.id, e.target.value)}
-                  className="select select-bordered select-xs border-base-300 w-auto mr-auto"
-                >
-                  {statusOptions.map((s) => (
-                    <option key={s} value={s}>{statusLabels[s]}</option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => onStatusChange?.(job.id, "not_interested")}
-                  className={`btn btn-sm ${status === "not_interested" ? "btn-error btn-outline" : "btn-ghost border border-base-300"}`}
-                >
-                  Not a Fit
-                </button>
-                <button
-                  onClick={() => onStatusChange?.(job.id, "zombie_listing")}
-                  className={`btn btn-sm ${status === "zombie_listing" ? "btn-warning btn-outline" : "btn-ghost border border-base-300"}`}
-                  title="Listing is dead/expired"
-                >
-                  🧟 Zombie
-                </button>
-                <AppliedButton
-                  isApplied={status === "applied"}
-                  onClick={() => onStatusChange?.(job.id, "applied")}
-                />
-              </>
-            )}
-            <a
-              href={job.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-primary btn-sm"
+            {/* Title */}
+            <Link
+              href={`/listing/${job.id}`}
+              className="block font-serif text-[22px] font-semibold leading-[1.2] text-white hover:text-[rgba(251,146,60,.95)] transition-colors duration-300 mb-2"
             >
-              {isDemo ? "View posting →" : "Apply →"}
-            </a>
+              {job.title}
+            </Link>
+
+            {/* Company row */}
+            <div className="flex items-center flex-wrap gap-x-3 gap-y-1 mb-4">
+              <a
+                href={`https://www.google.com/search?q=${encodeURIComponent(job.company + " official website")}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[15px] font-medium text-white/85 hover:text-[rgba(56,189,248,.95)] transition-colors duration-200"
+              >
+                {job.company}
+              </a>
+              {job.company_size && job.company_size !== "unknown" && (
+                <span className="text-[12px] text-white/45 capitalize">· {job.company_size}</span>
+              )}
+              <a
+                href={glassdoorUrl(job.company)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[11px] font-semibold tracking-[0.08em] uppercase text-[rgba(56,189,248,.65)] hover:text-[rgba(56,189,248,1)] transition-colors duration-200"
+              >
+                Glassdoor ↗
+              </a>
+              {job.company_rating != null && (
+                <span className="text-[12px] text-white/65">
+                  {job.company_rating}★
+                  {(job.company_red_flags?.length ?? 0) > 0 && (
+                    <span className="text-[rgba(251,146,60,.9)] ml-1" title={job.company_red_flags?.join(", ")}>⚠</span>
+                  )}
+                </span>
+              )}
+            </div>
+
+            {/* Meta row */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-white/65 mb-3">
+              {job.remote ? (
+                <span>🌎 Remote</span>
+              ) : (
+                job.location && <span>📍 {job.location}</span>
+              )}
+              {salaryDisplay && (
+                <span className={job.salary_below_floor ? "text-[rgba(251,146,60,.95)] font-medium" : "text-white/85 font-medium"}>
+                  💰 {salaryDisplay}
+                </span>
+              )}
+            </div>
+
+            {/* Chips */}
+            <div className="flex flex-wrap gap-1.5">
+              {detectedIndustry && <Chip emoji={detectedIndustry.emoji} label={detectedIndustry.label} tooltip={`Industry: ${detectedIndustry.label}`} />}
+              {businessModel && <Chip emoji={businessModel.emoji} label={businessModel.label} variant="sky" tooltip={`Business model: ${businessModel.label}`} />}
+              {job.has_benefits_info && <Chip emoji="🔥" label="Benefits" tooltip={`Found: ${matchedTerms(benefitsKeywords)} · +12 pts`} />}
+              {job.has_equity && <Chip emoji="📈" label="Equity" variant="orange" tooltip={`Found: ${matchedTerms(equityKeywords)} · +10 pts`} />}
+              {job.mentions_design_systems && <Chip emoji="🧩" label="Design Systems" tooltip={`Found: ${matchedTerms(designSystemsKeywords)} · +15 pts`} />}
+              {job.mentions_ai && <Chip emoji="🤖" label="AI" variant="sky" tooltip={`Found: ${matchedTerms(aiKeywords)} · +5 pts`} />}
+              {job.role_type === "ic" && <Chip emoji="👤" label="IC" tooltip={`"individual contributor" or "no direct reports" found · +3 pts`} />}
+              {job.role_type === "management" && <Chip emoji="👥" label="Management" tooltip={`"manage" or "direct reports" found in listing`} />}
+              {job.is_agency && <Chip emoji="🏷️" label="Agency" variant="warning" tooltip={`Found: ${matchedTerms(agencyKeywords)} · -10 pts`} />}
+              {job.salary_below_floor && (
+                <Chip emoji="⚠️" label="Low salary" variant="warning" tooltip={`${salaryDisplay} is below $140K floor · ${job.salary_source === "listed" ? "-15" : "-8"} pts`} />
+              )}
+            </div>
+
+            {/* AI description summary */}
+            {job.ai_description_summary && (
+              <p className="mt-5 text-[14px] text-white/65 leading-relaxed">
+                {cleanDescription(job.ai_description_summary)}
+              </p>
+            )}
+
+            {/* AI fit summary */}
+            {job.ai_fit_summary && (
+              <p className="mt-3 text-[14px] text-white/60 italic font-serif font-light border-l-2 border-[rgba(56,189,248,.25)] pl-3 leading-relaxed">
+                {cleanDescription(job.ai_fit_summary)}
+              </p>
+            )}
           </div>
+
+          {/* Right column — scores */}
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <button
+              onClick={() => setShowScoreOverlay(true)}
+              className="flex items-center gap-1.5 cursor-pointer group"
+              title="Click for score breakdown"
+            >
+              <ScoreBadge score={score} size="sm" />
+              {job.ai_fit_score != null && <ScoreBadge score={job.ai_fit_score} label="AI" size="sm" />}
+              <span className="text-white/20 group-hover:text-white/55 text-xs transition-colors">ⓘ</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Bottom action row */}
+        <div className="relative flex items-center justify-end gap-2.5 mt-5 pt-5 border-t border-white/[0.05]">
+          {!isDemo && (
+            <>
+              <Select
+                value={status}
+                size="xs"
+                onChange={(e) => onStatusChange?.(job.id, e.target.value)}
+                className="mr-auto w-auto min-w-[140px]"
+              >
+                {statusOptions.map((s) => (
+                  <option key={s} value={s}>{statusLabels[s]}</option>
+                ))}
+              </Select>
+              <Button
+                variant={status === "not_interested" ? "danger" : "ghost-bordered"}
+                size="sm"
+                onClick={() => onStatusChange?.(job.id, "not_interested")}
+              >
+                Not a Fit
+              </Button>
+              <Button
+                variant={status === "zombie_listing" ? "warning" : "ghost-bordered"}
+                size="sm"
+                onClick={() => onStatusChange?.(job.id, "zombie_listing")}
+                title="Listing is dead/expired"
+              >
+                🧟 Zombie
+              </Button>
+              <AppliedButton
+                isApplied={status === "applied"}
+                onClick={() => onStatusChange?.(job.id, "applied")}
+              />
+            </>
+          )}
+          <LinkButton
+            href={job.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            variant="primary"
+            size="sm"
+          >
+            {isDemo ? "View posting →" : "Apply →"}
+          </LinkButton>
         </div>
       </div>
     </>

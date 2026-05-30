@@ -1,6 +1,6 @@
 "use client";
 
-import { Slider } from "@/components/ui/slider";
+import { Select } from "@/components/ui/input";
 
 export interface Filters {
   minScore: number;
@@ -51,25 +51,116 @@ interface FilterSidebarProps {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="space-y-2.5">
-      <p className="text-xs font-semibold text-base-content/70 uppercase tracking-widest">{title}</p>
-      {children}
+    <div className="space-y-3">
+      <p className="text-[11px] font-bold tracking-[0.16em] uppercase text-white/45">{title}</p>
+      <div className="space-y-2.5">{children}</div>
     </div>
   );
 }
 
-function FilterToggle({ id, label, checked, onChange }: { id: string; label: string; checked: boolean; onChange: (v: boolean) => void }) {
+function FilterToggle({
+  id,
+  label,
+  checked,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer">
+    <label
+      htmlFor={id}
+      className="flex items-center gap-2.5 cursor-pointer group select-none"
+    >
+      <span
+        className={[
+          "w-4 h-4 rounded shrink-0 flex items-center justify-center transition-all duration-200",
+          "border",
+          checked
+            ? "bg-[rgba(251,146,60,.85)] border-[rgba(251,146,60,1)] shadow-[0_0_12px_rgba(251,146,60,.4)]"
+            : "bg-white/[0.04] border-white/[0.15] group-hover:border-white/30",
+        ].join(" ")}
+      >
+        {checked && (
+          <svg viewBox="0 0 12 12" className="w-3 h-3 text-white" fill="none">
+            <path
+              d="M2.5 6l2.5 2.5L9.5 3.5"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </span>
       <input
         type="checkbox"
         id={id}
         checked={checked}
         onChange={(e) => onChange(e.target.checked)}
-        className="checkbox checkbox-sm checkbox-primary rounded-none"
+        className="sr-only"
       />
-      <span className="text-sm text-base-content/80 select-none">{label}</span>
+      <span
+        className={[
+          "text-[13px] transition-colors duration-200",
+          checked ? "text-white" : "text-white/65 group-hover:text-white/90",
+        ].join(" ")}
+      >
+        {label}
+      </span>
     </label>
+  );
+}
+
+function Range({
+  value,
+  onChange,
+  min = 0,
+  max = 100,
+  step = 5,
+}: {
+  value: number;
+  onChange: (n: number) => void;
+  min?: number;
+  max?: number;
+  step?: number;
+}) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div className="relative pt-1 pb-2">
+      <div
+        className="h-[3px] rounded-full bg-white/[0.08] relative overflow-hidden"
+        aria-hidden
+      >
+        <div
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{
+            width: `${pct}%`,
+            background:
+              "linear-gradient(90deg, rgba(251,146,60,.7), rgba(56,189,248,.7))",
+          }}
+        />
+      </div>
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(parseInt(e.target.value, 10))}
+        className="absolute inset-0 w-full opacity-0 cursor-pointer"
+      />
+      <div
+        className="absolute top-[2px] w-3 h-3 rounded-full -translate-x-1/2 pointer-events-none"
+        style={{
+          left: `${pct}%`,
+          background: "#fff",
+          boxShadow: "0 0 12px rgba(56,189,248,.6), 0 0 0 2px rgba(2,6,8,1)",
+        }}
+      />
+    </div>
   );
 }
 
@@ -79,27 +170,18 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
   }
 
   return (
-    <aside className="w-56 shrink-0 space-y-6">
-
+    <aside className="w-60 shrink-0 space-y-7 sticky top-24 self-start">
       <Section title={`Min score: ${filters.minScore}`}>
-        <Slider
-          min={0}
-          max={100}
-          step={5}
-          value={[filters.minScore]}
-          onValueChange={(vals) => update("minScore", Array.isArray(vals) ? vals[0] : vals)}
-          className="w-full"
+        <Range
+          value={filters.minScore}
+          onChange={(n) => update("minScore", n)}
         />
       </Section>
 
       <Section title={`Min AI fit: ${filters.minAiScore > 0 ? filters.minAiScore : "any"}`}>
-        <Slider
-          min={0}
-          max={100}
-          step={5}
-          value={[filters.minAiScore]}
-          onValueChange={(vals) => update("minAiScore", Array.isArray(vals) ? vals[0] : vals)}
-          className="w-full"
+        <Range
+          value={filters.minAiScore}
+          onChange={(n) => update("minAiScore", n)}
         />
       </Section>
 
@@ -118,50 +200,34 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
       </Section>
 
       <Section title="Posted within">
-        <select
-          value={filters.postedWithin}
-          onChange={(e) => update("postedWithin", e.target.value)}
-          className="select select-bordered select-sm w-full border-base-300"
-        >
+        <Select value={filters.postedWithin} size="sm" onChange={(e) => update("postedWithin", e.target.value)} className="w-full">
           <option value="">Any time</option>
           <option value="3">Last 3 days</option>
           <option value="7">Last 7 days</option>
           <option value="14">Last 14 days</option>
           <option value="30">Last 30 days</option>
-        </select>
+        </Select>
       </Section>
 
       <Section title="Role type">
-        <select
-          value={filters.roleType}
-          onChange={(e) => update("roleType", e.target.value)}
-          className="select select-bordered select-sm w-full border-base-300"
-        >
+        <Select value={filters.roleType} size="sm" onChange={(e) => update("roleType", e.target.value)} className="w-full">
           <option value="">All types</option>
           <option value="ic">Individual Contributor</option>
           <option value="management">Management</option>
-        </select>
+        </Select>
       </Section>
 
       <Section title="Company size">
-        <select
-          value={filters.companySize}
-          onChange={(e) => update("companySize", e.target.value)}
-          className="select select-bordered select-sm w-full border-base-300"
-        >
+        <Select value={filters.companySize} size="sm" onChange={(e) => update("companySize", e.target.value)} className="w-full">
           <option value="">All sizes</option>
           <option value="startup">Startup</option>
           <option value="midsize">Midsize</option>
           <option value="enterprise">Enterprise</option>
-        </select>
+        </Select>
       </Section>
 
       <Section title="Source">
-        <select
-          value={filters.source}
-          onChange={(e) => update("source", e.target.value)}
-          className="select select-bordered select-sm w-full border-base-300"
-        >
+        <Select value={filters.source} size="sm" onChange={(e) => update("source", e.target.value)} className="w-full">
           <option value="">All sources</option>
           <option value="adzuna">Adzuna</option>
           <option value="jsearch">JSearch</option>
@@ -176,12 +242,12 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
           <option value="remotive">Remotive</option>
           <option value="coroflot">Coroflot</option>
           <option value="hn-hiring">HN Who&apos;s Hiring</option>
-        </select>
+        </Select>
       </Section>
 
       <button
         onClick={() => onChange(DEFAULT_FILTERS)}
-        className="btn btn-ghost btn-sm w-full text-base-content/60"
+        className="w-full text-[11px] font-semibold tracking-[0.12em] uppercase text-white/40 hover:text-[rgba(251,146,60,.95)] transition-colors duration-300 py-2"
       >
         Reset filters
       </button>

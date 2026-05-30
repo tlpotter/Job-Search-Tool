@@ -1,12 +1,23 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "./session-provider";
 
 export function AppHeader() {
   const session = useSession();
   const router = useRouter();
+  const pathname = usePathname();
   const isDemo = session?.role === "demo";
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 80);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   async function handleLogout() {
     await fetch("/api/logout", { method: "POST" });
@@ -14,32 +25,75 @@ export function AppHeader() {
     router.refresh();
   }
 
+  const navLinkClass = (active: boolean) =>
+    [
+      "text-[15px] font-medium tracking-[0.06em] transition-colors duration-300",
+      active ? "text-white" : "text-white/35 hover:text-[rgba(251,146,60,.95)]",
+    ].join(" ");
+
   return (
     <>
       {isDemo && (
-        <div className="bg-warning/20 border-b border-warning/30 text-warning-content px-6 py-2 text-xs text-center font-medium">
-          Demo mode — read only. Status changes, bookmarks, and notes are disabled.
+        <div
+          className="sticky top-0 z-50 bg-[rgba(251,146,60,.12)] border-b border-[rgba(251,146,60,.25)] text-[rgba(251,180,100,.95)] px-6 py-2 text-[11px] font-semibold tracking-[0.12em] uppercase text-center backdrop-blur-md"
+        >
+          Demo mode · Read only
         </div>
       )}
-      <div className="navbar bg-base-100 border-b border-base-300 px-6">
-        <div className="navbar-start">
-          <span className="text-base font-semibold">UX Job Crawler</span>
-          <span className="mx-3 text-base-content/20">·</span>
-          <span className="text-sm text-base-content/50">Senior &amp; Staff UX / Product Designer</span>
+      <nav
+        className={[
+          "sticky top-0 z-40 transition-opacity duration-[400ms] ease-out",
+          "px-6 md:px-10 py-5",
+          "bg-[linear-gradient(to_bottom,rgba(6,10,15,.92),transparent)]",
+          "backdrop-blur-md",
+          scrolled ? "opacity-[0.55] hover:opacity-100" : "opacity-100",
+        ].join(" ")}
+      >
+        <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-6">
+          <Link
+            href="/"
+            className="font-serif text-[20px] font-semibold italic tracking-tight"
+            style={{
+              background:
+                "linear-gradient(90deg, #fb923c 0%, #38bdf8 40%, #ffffff 40%, #ffffff 100%)",
+              WebkitBackgroundClip: "text",
+              backgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            UX Job Crawler
+          </Link>
+
+          <ul className="hidden md:flex items-center gap-8 list-none">
+            <li>
+              <Link href="/" className={navLinkClass(pathname === "/")}>
+                Feed
+              </Link>
+            </li>
+            <li>
+              <Link href="/tracker" className={navLinkClass(pathname === "/tracker")}>
+                Tracker
+              </Link>
+            </li>
+          </ul>
+
+          <div className="flex items-center gap-3">
+            {session && (
+              <>
+                <span className="hidden sm:inline text-xs text-white/30 tracking-[0.04em]">
+                  {session.email}
+                </span>
+                <button
+                  onClick={handleLogout}
+                  className="text-[12px] font-semibold tracking-[0.12em] uppercase text-white/40 hover:text-[rgba(251,146,60,.95)] transition-colors duration-300"
+                >
+                  Sign out
+                </button>
+              </>
+            )}
+          </div>
         </div>
-        <div className="navbar-end gap-2">
-          <a href="/" className="btn btn-ghost btn-sm font-medium">Feed</a>
-          <a href="/tracker" className="btn btn-ghost btn-sm text-base-content/60">Tracker</a>
-          {session && (
-            <>
-              <span className="text-xs text-base-content/40 mx-2 hidden sm:inline">{session.email}</span>
-              <button onClick={handleLogout} className="btn btn-ghost btn-sm text-base-content/60">
-                Sign out
-              </button>
-            </>
-          )}
-        </div>
-      </div>
+      </nav>
     </>
   );
 }

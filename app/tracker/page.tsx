@@ -26,9 +26,15 @@ export default async function TrackerPage() {
   });
 
   return (
-    <div className="min-h-screen bg-base-200 flex flex-col">
+    <div className="min-h-screen flex flex-col">
       <AppHeader />
-      <div className="flex-1 px-6 py-6">
+      <div className="flex-1 max-w-[1600px] w-full mx-auto px-6 md:px-10 py-10">
+        <div className="mb-8">
+          <div className="eyebrow mb-3">Tracker</div>
+          <h1 className="serif-heading text-[clamp(32px,4vw,48px)]">
+            Application <em>pipeline</em>
+          </h1>
+        </div>
         <TrackerBoard initialItems={items} />
       </div>
     </div>

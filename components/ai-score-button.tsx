@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ScoreBadge } from "./score-badge";
 import { useIsDemo } from "./session-provider";
+import { Button } from "@/components/ui/button";
 
 interface AiScoreResult {
   fitScore: number;
@@ -59,37 +60,42 @@ export function AiScoreButton({
 
   if (result) {
     return (
-      <div className="card card-bordered bg-base-200 p-5 space-y-4">
+      <div className="glass rounded-2xl p-6 space-y-5">
         <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-base-content">AI Fit Analysis</h2>
+          <div>
+            <div className="eyebrow !text-[11px]">AI Fit Analysis</div>
+          </div>
           <div className="flex items-center gap-2">
             <ScoreBadge score={result.fitScore} label="AI Fit" />
             {!isDemo && (
               <button
                 onClick={runScore}
                 disabled={loading}
-                className="btn btn-ghost btn-xs text-base-content/50"
+                className="w-7 h-7 rounded-md text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors inline-flex items-center justify-center text-sm"
                 title="Re-run AI scoring"
               >
-                {loading ? "..." : "↺"}
+                {loading ? "…" : "↺"}
               </button>
             )}
           </div>
         </div>
 
         {result.summary && (
-          <p className="text-sm text-base-content/70 italic border-l-2 border-primary/30 pl-3 leading-snug">
+          <p className="text-[15px] text-white/70 italic font-serif font-light border-l-2 border-[rgba(56,189,248,.35)] pl-4 leading-relaxed">
             {result.summary}
           </p>
         )}
 
         {result.highlights.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-success uppercase tracking-wide mb-2">Strengths</p>
-            <ul className="space-y-1">
+            <div className="eyebrow !text-[rgba(134,239,172,.85)] mb-3 !text-[11px]">
+              Strengths
+            </div>
+            <ul className="space-y-1.5">
               {result.highlights.map((h, i) => (
-                <li key={i} className="text-sm text-base-content/80 flex items-start gap-1.5">
-                  <span className="text-success mt-0.5 shrink-0">✓</span> {h}
+                <li key={i} className="text-[14px] text-white/80 flex items-start gap-2">
+                  <span className="text-[rgba(134,239,172,1)] mt-1 shrink-0">✓</span>
+                  <span>{h}</span>
                 </li>
               ))}
             </ul>
@@ -98,11 +104,12 @@ export function AiScoreButton({
 
         {result.gaps.length > 0 && (
           <div>
-            <p className="text-xs font-semibold text-warning uppercase tracking-wide mb-2">Skill Gaps</p>
-            <ul className="space-y-1">
+            <div className="eyebrow mb-3 !text-[11px]">Skill Gaps</div>
+            <ul className="space-y-1.5">
               {result.gaps.map((g, i) => (
-                <li key={i} className="text-sm text-base-content/80 flex items-start gap-1.5">
-                  <span className="text-warning mt-0.5 shrink-0">⚠</span> {g}
+                <li key={i} className="text-[14px] text-white/80 flex items-start gap-2">
+                  <span className="text-[rgba(251,180,100,.95)] mt-1 shrink-0">⚠</span>
+                  <span>{g}</span>
                 </li>
               ))}
             </ul>
@@ -115,21 +122,19 @@ export function AiScoreButton({
   if (isDemo) return null;
 
   return (
-    <div className="card card-bordered bg-base-200 p-5">
-      <div className="flex items-center justify-between">
+    <div className="glass rounded-2xl p-6">
+      <div className="flex items-center justify-between gap-4">
         <div>
-          <h2 className="font-semibold text-base-content">AI Fit Analysis</h2>
-          <p className="text-sm text-base-content/50 mt-0.5">Not yet scored</p>
+          <div className="eyebrow !text-[11px] mb-2">AI Fit Analysis</div>
+          <p className="text-[13px] text-white/40">Not yet scored</p>
         </div>
-        <button
-          onClick={runScore}
-          disabled={loading}
-          className="btn btn-primary btn-sm"
-        >
-          {loading ? <span className="loading loading-spinner loading-xs" /> : "Run AI Score"}
-        </button>
+        <Button onClick={runScore} disabled={loading} size="sm">
+          {loading ? "Running…" : "Run AI Score"}
+        </Button>
       </div>
-      {error && <p className="text-sm text-error mt-3">{error}</p>}
+      {error && (
+        <p className="text-[13px] text-[rgba(255,180,180,.95)] mt-3">{error}</p>
+      )}
     </div>
   );
 }

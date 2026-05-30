@@ -7,6 +7,7 @@ import { ScoreBadge } from "@/components/score-badge";
 import { AiScoreButton } from "@/components/ai-score-button";
 import { ListingActions } from "@/components/listing-actions";
 import { AppHeader } from "@/components/app-header";
+import { Badge } from "@/components/ui/badge";
 import { cleanDescription } from "@/lib/utils/clean-description";
 
 export default async function ListingPage({
@@ -24,16 +25,26 @@ export default async function ListingPage({
 
   if (error || !job) {
     return (
-      <div className="min-h-screen bg-base-200 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-base-content/50 text-lg">Listing not found</p>
-          <Link href="/" className="text-primary text-sm mt-2 inline-block hover:underline">
-            ← Back to feed
-          </Link>
+      <div className="min-h-screen">
+        <AppHeader />
+        <div className="flex items-center justify-center py-32">
+          <div className="text-center">
+            <p className="font-serif text-[28px] text-white/55 mb-3">Listing not found</p>
+            <Link
+              href="/"
+              className="text-[13px] font-semibold tracking-[0.08em] uppercase text-[rgba(56,189,248,.8)] hover:text-[rgba(56,189,248,1)] transition-colors"
+            >
+              ← Back to feed
+            </Link>
+          </div>
         </div>
       </div>
     );
   }
+
+  // user_actions is returned as an array by Supabase joins — normalize it
+  const userActions = Array.isArray(job.user_actions) ? job.user_actions[0] : job.user_actions;
+  const initialStatus = userActions?.status;
 
   const salaryDisplay = job.salary
     ? `${job.salary} (listed)`
@@ -41,21 +52,40 @@ export default async function ListingPage({
       ? `~${job.estimated_salary} (estimated)`
       : "Not available";
 
+  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
+    <div className="flex items-baseline justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
+      <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">{label}</dt>
+      <dd className="text-[14px] text-white/85 text-right">{children}</dd>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="min-h-screen">
       <AppHeader />
-      <div className="max-w-4xl mx-auto px-6 pt-3">
-        <Link href="/" className="text-sm text-primary hover:underline">← Back to feed</Link>
+
+      <div className="max-w-[1024px] mx-auto px-6 md:px-10 pt-4">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em] uppercase text-[rgba(56,189,248,.75)] hover:text-[rgba(56,189,248,1)] transition-colors duration-300 group"
+        >
+          <span className="transition-transform duration-300 group-hover:-translate-x-1">←</span>
+          Back to feed
+        </Link>
       </div>
-      <div className="max-w-4xl mx-auto px-6 py-6 space-y-6">
+
+      <div className="max-w-[1024px] mx-auto px-6 md:px-10 py-8 space-y-6">
 
         {/* Header card */}
-        <div className="card card-bordered bg-base-100 p-6">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-base-content">{job.title}</h1>
-              <p className="text-lg text-base-content/70 mt-1">{job.company}</p>
-              <div className="flex flex-wrap gap-2 mt-3">
+        <div className="glass rounded-3xl p-8 md:p-10">
+          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+            <div className="min-w-0 flex-1">
+              <div className="eyebrow mb-3">{job.source}</div>
+              <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
+                {job.title}
+              </h1>
+              <p className="text-[18px] text-white/70 mb-5">{job.company}</p>
+
+              <div className="flex flex-wrap gap-2">
                 <ScoreBadge score={job.relevance_score ?? 0} />
                 {job.ai_fit_score != null && (
                   <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
@@ -67,94 +97,62 @@ export default async function ListingPage({
                 />
               </div>
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+
+            <div className="shrink-0">
               <ListingActions
                 listingId={job.id}
                 applyUrl={job.url}
-                initialStatus={job.user_actions?.status}
+                initialStatus={initialStatus}
               />
             </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
 
           {/* Job details */}
-          <div className="card card-bordered bg-base-100 p-5 space-y-4">
-            <h2 className="font-semibold text-base-content">Job Details</h2>
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-base-content/50">Location</dt>
-                <dd className="text-base-content">{job.location}{job.remote ? " (Remote)" : ""}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-base-content/50">Salary</dt>
-                <dd className={job.salary_below_floor ? "text-warning font-medium" : "text-base-content"}>
+          <div className="glass rounded-2xl p-7 space-y-1">
+            <div className="eyebrow mb-4 !text-[11px]">Job Details</div>
+            <dl>
+              <Row label="Location">{job.location}{job.remote ? " (Remote)" : ""}</Row>
+              <Row label="Salary">
+                <span className={job.salary_below_floor ? "text-[rgba(251,180,100,.95)] font-medium" : ""}>
                   {salaryDisplay}
                   {job.salary_below_floor && " ⚠️"}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-base-content/50">Posted</dt>
-                <dd className="text-base-content">{job.posted_date ?? "Unknown"}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-base-content/50">Source</dt>
-                <dd className="text-base-content capitalize">{job.source}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-base-content/50">Role type</dt>
-                <dd className="text-base-content capitalize">{job.role_type ?? "Unknown"}</dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-base-content/50">Company size</dt>
-                <dd className="text-base-content capitalize">{job.company_size ?? "Unknown"}</dd>
-              </div>
+                </span>
+              </Row>
+              <Row label="Posted">{job.posted_date ?? "Unknown"}</Row>
+              <Row label="Source"><span className="capitalize">{job.source}</span></Row>
+              <Row label="Role type"><span className="capitalize">{job.role_type ?? "Unknown"}</span></Row>
+              <Row label="Company size"><span className="capitalize">{job.company_size ?? "Unknown"}</span></Row>
             </dl>
 
-            <div className="flex flex-wrap gap-1.5 pt-2">
-              {job.has_benefits_info && <span className="badge badge-ghost badge-sm">🔥 Benefits</span>}
-              {job.has_equity && <span className="badge badge-ghost badge-sm">📈 Equity</span>}
-              {job.mentions_design_systems && <span className="badge badge-ghost badge-sm">🧩 Design Systems</span>}
-              {job.mentions_ai && <span className="badge badge-ghost badge-sm">🤖 AI</span>}
-              {job.is_agency && <span className="badge badge-outline badge-sm">🏷️ Agency</span>}
+            <div className="flex flex-wrap gap-1.5 pt-4">
+              {job.has_benefits_info && <Badge>🔥 Benefits</Badge>}
+              {job.has_equity && <Badge variant="orange">📈 Equity</Badge>}
+              {job.mentions_design_systems && <Badge>🧩 Design Systems</Badge>}
+              {job.mentions_ai && <Badge variant="sky">🤖 AI</Badge>}
+              {job.is_agency && <Badge variant="warning">🏷️ Agency</Badge>}
             </div>
           </div>
 
           {/* Company reputation */}
-          <div className="card card-bordered bg-base-100 p-5 space-y-4">
-            <h2 className="font-semibold text-base-content">Company</h2>
+          <div className="glass rounded-2xl p-7 space-y-1">
+            <div className="eyebrow mb-4 !text-[11px]">Company</div>
             {job.company_reputation_available ? (
-              <dl className="space-y-2 text-sm">
-                {job.company_rating != null && (
-                  <div className="flex justify-between">
-                    <dt className="text-base-content/50">Glassdoor rating</dt>
-                    <dd className="text-base-content">{job.company_rating}/5.0</dd>
-                  </div>
-                )}
-                {job.company_wlb != null && (
-                  <div className="flex justify-between">
-                    <dt className="text-base-content/50">Work-life balance</dt>
-                    <dd className="text-base-content">{job.company_wlb}/5.0</dd>
-                  </div>
-                )}
-                <div className="flex justify-between">
-                  <dt className="text-base-content/50">Growth trend</dt>
-                  <dd className="text-base-content capitalize">{job.company_growth_trend ?? "Unknown"}</dd>
-                </div>
-                {job.company_headcount != null && (
-                  <div className="flex justify-between">
-                    <dt className="text-base-content/50">Headcount</dt>
-                    <dd className="text-base-content">{job.company_headcount.toLocaleString()}</dd>
-                  </div>
-                )}
+              <dl>
+                {job.company_rating != null && <Row label="Glassdoor">{job.company_rating}/5.0</Row>}
+                {job.company_wlb != null && <Row label="Work-life balance">{job.company_wlb}/5.0</Row>}
+                <Row label="Growth trend"><span className="capitalize">{job.company_growth_trend ?? "Unknown"}</span></Row>
+                {job.company_headcount != null && <Row label="Headcount">{job.company_headcount.toLocaleString()}</Row>}
                 {job.company_red_flags && job.company_red_flags.length > 0 && (
-                  <div>
-                    <dt className="text-base-content/50 mb-1 block">Red flags</dt>
-                    <ul className="space-y-1">
+                  <div className="pt-3">
+                    <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 mb-2">Red Flags</div>
+                    <ul className="space-y-1.5">
                       {job.company_red_flags.map((flag: string) => (
-                        <li key={flag} className="text-error text-xs flex items-center gap-1">
-                          ⚠️ {flag}
+                        <li key={flag} className="text-[13px] text-[rgba(255,180,180,.95)] flex items-start gap-2">
+                          <span className="mt-0.5">⚠️</span>
+                          <span>{flag}</span>
                         </li>
                       ))}
                     </ul>
@@ -162,12 +160,12 @@ export default async function ListingPage({
                 )}
               </dl>
             ) : (
-              <p className="text-sm text-base-content/40">No reputation data available</p>
+              <p className="text-[13px] text-white/40">No reputation data available</p>
             )}
           </div>
         </div>
 
-        {/* AI Analysis — always shown, button if not yet scored */}
+        {/* AI Analysis */}
         <AiScoreButton
           listingId={job.id}
           initialScore={job.ai_fit_score}
@@ -178,9 +176,9 @@ export default async function ListingPage({
 
         {/* Description */}
         {job.description && (
-          <div className="card card-bordered bg-base-100 p-5">
-            <h2 className="font-semibold text-base-content mb-3">Description</h2>
-            <div className="text-sm text-base-content/70 whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
+          <div className="glass rounded-2xl p-7">
+            <div className="eyebrow mb-4 !text-[11px]">Description</div>
+            <div className="text-[15px] text-white/75 whitespace-pre-wrap leading-[1.85] max-h-[480px] overflow-y-auto pr-2">
               {cleanDescription(job.description)}
             </div>
           </div>

@@ -9,22 +9,31 @@ interface ScoreBadgeProps {
 export function ScoreBadge({ score, label = "Score", size = "md" }: ScoreBadgeProps) {
   const isAI = label === "AI" || label === "AI Fit";
 
-  const color = isAI
-    ? score >= 70
-      ? "bg-violet-600 text-white"
+  // Portfolio-tone status colors (orange/sky/muted)
+  const tone =
+    score >= 70
+      ? isAI
+        ? "bg-[rgba(56,189,248,.14)] border-[rgba(56,189,248,.35)] text-[rgba(56,189,248,1)]"
+        : "bg-[rgba(34,197,94,.12)] border-[rgba(34,197,94,.3)] text-[rgba(134,239,172,1)]"
       : score >= 40
-        ? "bg-violet-400 text-white"
-        : "bg-violet-200 text-violet-800"
-    : score >= 70
-      ? "bg-green-600 text-white"
-      : score >= 40
-        ? "bg-yellow-500 text-white"
-        : "bg-gray-400 text-white";
+        ? isAI
+          ? "bg-[rgba(56,189,248,.08)] border-[rgba(56,189,248,.2)] text-[rgba(125,211,252,.95)]"
+          : "bg-[rgba(251,146,60,.1)] border-[rgba(251,146,60,.25)] text-[rgba(251,180,100,.95)]"
+        : "bg-white/[0.05] border-white/[0.1] text-white/55";
 
-  const padding = size === "sm" ? "px-2 py-0.5 text-xs" : "px-2.5 py-1 text-sm";
+  const padding =
+    size === "sm"
+      ? "px-2 py-0.5 text-[10px] tracking-[0.08em]"
+      : "px-2.5 py-1 text-[11px] tracking-[0.06em]";
 
   return (
-    <span className={`inline-flex items-center rounded-full font-medium ${color} ${padding}`}>
+    <span
+      className={[
+        "inline-flex items-center font-semibold uppercase rounded-md border whitespace-nowrap",
+        tone,
+        padding,
+      ].join(" ")}
+    >
       {label}: {score}
     </span>
   );

@@ -1,60 +1,70 @@
-"use client"
+import { forwardRef, type ButtonHTMLAttributes, type AnchorHTMLAttributes } from "react";
 
-import { Button as ButtonPrimitive } from "@base-ui/react/button"
-import { cva, type VariantProps } from "class-variance-authority"
+export type ButtonVariant =
+  | "primary"
+  | "ghost"
+  | "ghost-bordered"
+  | "danger"
+  | "warning"
+  | "success";
+export type ButtonSize = "xs" | "sm" | "md";
 
-import { cn } from "@/lib/utils"
+const variantStyles: Record<ButtonVariant, string> = {
+  primary:
+    "bg-[linear-gradient(135deg,rgba(251,146,60,.4),rgba(249,115,22,.4))] hover:bg-[linear-gradient(135deg,rgba(251,146,60,.6),rgba(249,115,22,.6))] border-[rgba(251,146,60,.5)] text-white shadow-[0_4px_20px_rgba(251,146,60,.2)] hover:shadow-[0_8px_32px_rgba(251,146,60,.35)] hover:-translate-y-0.5",
+  ghost:
+    "bg-[rgba(56,189,248,.06)] hover:bg-[rgba(56,189,248,.12)] border-[rgba(56,189,248,.2)] text-white/85 hover:text-white hover:-translate-y-0.5",
+  "ghost-bordered":
+    "bg-transparent hover:bg-white/[0.04] border-white/10 hover:border-white/20 text-white/70 hover:text-white",
+  danger:
+    "bg-[rgba(255,80,80,.12)] hover:bg-[rgba(255,80,80,.2)] border-[rgba(255,80,80,.3)] hover:border-[rgba(255,80,80,.5)] text-[rgba(255,180,180,.95)] hover:text-white",
+  warning:
+    "bg-[rgba(251,146,60,.1)] hover:bg-[rgba(251,146,60,.2)] border-[rgba(251,146,60,.3)] hover:border-[rgba(251,146,60,.5)] text-[rgba(251,180,100,.95)] hover:text-white",
+  success:
+    "bg-[rgba(34,197,94,.15)] hover:bg-[rgba(34,197,94,.25)] border-[rgba(34,197,94,.4)] text-[rgba(150,255,180,1)]",
+};
 
-const buttonVariants = cva(
-  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:not-aria-[haspopup]:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
-  {
-    variants: {
-      variant: {
-        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
-        outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
-        ghost:
-          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
-        destructive:
-          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
-        link: "text-primary underline-offset-4 hover:underline",
-      },
-      size: {
-        default:
-          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
-        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        icon: "size-8",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
-        "icon-lg": "size-9",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-      size: "default",
-    },
-  }
-)
+const sizeStyles: Record<ButtonSize, string> = {
+  xs: "px-3 py-1 text-[11px] gap-1 rounded-md tracking-[0.06em] uppercase font-semibold",
+  sm: "px-4 py-1.5 text-[13px] gap-1.5 rounded-lg",
+  md: "px-7 py-3 text-base gap-2 rounded-[10px]",
+};
 
-function Button({
-  className,
-  variant = "default",
-  size = "default",
-  ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
-  return (
-    <ButtonPrimitive
-      data-slot="button"
-      className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
-    />
-  )
+const base =
+  "inline-flex items-center justify-center font-semibold tracking-[0.02em] border transition-all duration-300 ease-out backdrop-blur-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 whitespace-nowrap";
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
 }
 
-export { Button, buttonVariants }
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+  ({ variant = "primary", size = "md", className = "", children, ...props }, ref) => (
+    <button
+      ref={ref}
+      className={[base, variantStyles[variant], sizeStyles[size], className].join(" ")}
+      {...props}
+    >
+      {children}
+    </button>
+  )
+);
+Button.displayName = "Button";
+
+interface LinkButtonProps extends AnchorHTMLAttributes<HTMLAnchorElement> {
+  variant?: ButtonVariant;
+  size?: ButtonSize;
+}
+
+export const LinkButton = forwardRef<HTMLAnchorElement, LinkButtonProps>(
+  ({ variant = "primary", size = "md", className = "", children, ...props }, ref) => (
+    <a
+      ref={ref}
+      className={[base, variantStyles[variant], sizeStyles[size], className].join(" ")}
+      {...props}
+    >
+      {children}
+    </a>
+  )
+);
+LinkButton.displayName = "LinkButton";

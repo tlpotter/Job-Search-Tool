@@ -5,11 +5,11 @@ import Link from "next/link";
 import { useIsDemo } from "./session-provider";
 
 export const COLUMNS = [
-  { key: "save_for_later", label: "Saved", color: "bg-blue-50 border-blue-200", headerColor: "text-blue-700" },
-  { key: "applied", label: "Applied", color: "bg-purple-50 border-purple-200", headerColor: "text-purple-700" },
-  { key: "interviewing", label: "Interviewing", color: "bg-yellow-50 border-yellow-200", headerColor: "text-yellow-700" },
-  { key: "offer", label: "Offer 🎉", color: "bg-green-50 border-green-200", headerColor: "text-green-700" },
-  { key: "not_interested", label: "Not Interested / Not a Fit", color: "bg-gray-50 border-gray-200", headerColor: "text-gray-500" },
+  { key: "save_for_later", label: "Saved", accent: "rgba(56,189,248,.7)" },
+  { key: "applied", label: "Applied", accent: "rgba(168,85,247,.7)" },
+  { key: "interviewing", label: "Interviewing", accent: "rgba(251,191,36,.7)" },
+  { key: "offer", label: "Offer 🎉", accent: "rgba(34,197,94,.75)" },
+  { key: "not_interested", label: "Not a Fit", accent: "rgba(255,255,255,.3)" },
 ];
 
 export interface TrackerItem {
@@ -47,22 +47,22 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
     dragItem.current = item;
     setDraggingId(item.listing_id);
 
-    // Build a custom drag ghost that sticks to the cursor
+    // Custom drag ghost styled for dark theme
     const ghost = document.createElement("div");
     ghost.style.cssText = `
       position: fixed; top: -9999px; left: -9999px;
-      width: 200px; padding: 10px 12px;
-      background: white; border: 1px solid #d1d5db;
-      border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.18);
-      font-family: inherit; pointer-events: none;
+      width: 220px; padding: 12px 14px;
+      background: rgba(20,24,32,0.95); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 12px; box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      backdrop-filter: blur(20px);
+      font-family: inherit; color: white; pointer-events: none;
     `;
     ghost.innerHTML = `
-      <p style="font-size:13px;font-weight:600;color:#111827;margin:0 0 2px 0;line-height:1.3">${item.listing.title}</p>
-      <p style="font-size:11px;color:#6b7280;margin:0">${item.listing.company}</p>
+      <p style="font-family:'Fraunces',Georgia,serif;font-size:14px;font-weight:600;color:#fff;margin:0 0 4px 0;line-height:1.3">${item.listing.title}</p>
+      <p style="font-size:12px;color:rgba(255,255,255,0.55);margin:0">${item.listing.company}</p>
     `;
     document.body.appendChild(ghost);
     e.dataTransfer.setDragImage(ghost, 16, 16);
-    // Clean up after drag starts
     setTimeout(() => document.body.removeChild(ghost), 0);
   }
 
@@ -85,7 +85,6 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
       return;
     }
 
-    // Optimistic update
     setItems((prev) =>
       prev.map((i) =>
         i.listing_id === item.listing_id
@@ -96,7 +95,6 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
     setDraggingId(null);
     setDragOverCol(null);
 
-    // Persist
     await fetch("/api/actions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -119,28 +117,44 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
             onDrop={() => onDrop(col.key)}
           >
             {/* Column header */}
-            <div className="flex items-center justify-between mb-3">
-              <h2 className={`font-semibold text-sm ${col.headerColor}`}>{col.label}</h2>
-              <span className="bg-white border border-gray-200 rounded-full px-2 py-0.5 text-xs font-medium text-gray-500">
+            <div className="flex items-center justify-between mb-4 px-1">
+              <div className="flex items-center gap-2.5">
+                <span
+                  className="inline-block w-[18px] h-[1px]"
+                  style={{ background: col.accent }}
+                />
+                <h2
+                  className="text-[12px] font-bold tracking-[0.16em] uppercase"
+                  style={{ color: col.accent }}
+                >
+                  {col.label}
+                </h2>
+              </div>
+              <span className="text-[11px] font-semibold tabular-nums text-white/40">
                 {colItems.length}
               </span>
             </div>
 
             {/* Drop zone */}
             <div
-              className={`flex-1 rounded-xl border-2 p-3 transition-colors min-h-32 ${
+              className={[
+                "flex-1 rounded-2xl p-3 transition-all duration-200 min-h-32 border",
                 isOver
-                  ? "border-blue-400 bg-blue-50"
-                  : `border ${col.color}`
-              }`}
+                  ? "bg-[rgba(56,189,248,.05)] border-[rgba(56,189,248,.35)]"
+                  : "bg-white/[0.02] border-white/[0.05]",
+              ].join(" ")}
             >
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 {colItems.length === 0 && !isOver && (
-                  <p className="text-xs text-gray-400 text-center py-6">Drop here</p>
+                  <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/20 text-center py-8">
+                    Empty
+                  </p>
                 )}
                 {isOver && colItems.length === 0 && (
-                  <div className="border-2 border-dashed border-blue-300 rounded-lg h-16 flex items-center justify-center">
-                    <p className="text-xs text-blue-400">Move here</p>
+                  <div className="border border-dashed border-[rgba(56,189,248,.4)] rounded-xl h-16 flex items-center justify-center">
+                    <p className="text-[11px] font-semibold tracking-[0.12em] uppercase text-[rgba(56,189,248,.7)]">
+                      Drop here
+                    </p>
                   </div>
                 )}
                 {colItems.map((item) => (
@@ -149,36 +163,41 @@ export function TrackerBoard({ initialItems }: TrackerBoardProps) {
                     draggable={!isDemo}
                     onDragStart={(e) => onDragStart(e, item)}
                     onDragEnd={onDragEnd}
-                    className={`bg-white border border-gray-200 rounded-lg p-3 ${isDemo ? "cursor-default" : "cursor-grab active:cursor-grabbing"} transition-all select-none ${
-                      draggingId === item.listing_id ? "opacity-40 scale-95" : "hover:shadow-sm"
-                    }`}
+                    className={[
+                      "glass rounded-xl p-3 transition-all select-none",
+                      isDemo ? "cursor-default" : "cursor-grab active:cursor-grabbing",
+                      draggingId === item.listing_id
+                        ? "opacity-40 scale-95"
+                        : "hover:bg-white/[0.07]",
+                    ].join(" ")}
                   >
                     <Link
                       href={`/listing/${item.listing.id}`}
                       className="block"
                       onClick={(e) => {
-                        // Prevent navigation during drag
                         if (draggingId) e.preventDefault();
                       }}
                     >
-                      <p className="text-sm font-medium text-gray-900 leading-tight">
+                      <p className="font-serif text-[14px] font-semibold text-white leading-tight">
                         {item.listing.title}
                       </p>
-                      <p className="text-xs text-gray-500 mt-0.5">{item.listing.company}</p>
-                      <div className="flex gap-1.5 mt-1.5">
+                      <p className="text-[12px] text-white/55 mt-1">
+                        {item.listing.company}
+                      </p>
+                      <div className="flex flex-wrap gap-1.5 mt-2">
                         {item.listing.relevance_score != null && (
-                          <span className="text-xs bg-gray-100 text-gray-600 rounded px-1.5 py-0.5">
+                          <span className="text-[10px] font-semibold tracking-[0.06em] bg-white/[0.06] border border-white/[0.08] text-white/70 rounded px-1.5 py-0.5">
                             {item.listing.relevance_score}
                           </span>
                         )}
                         {item.listing.ai_fit_score != null && (
-                          <span className="text-xs bg-blue-100 text-blue-600 rounded px-1.5 py-0.5">
-                            AI: {item.listing.ai_fit_score}
+                          <span className="text-[10px] font-semibold tracking-[0.06em] bg-[rgba(56,189,248,.1)] border border-[rgba(56,189,248,.25)] text-[rgba(125,211,252,1)] rounded px-1.5 py-0.5">
+                            AI {item.listing.ai_fit_score}
                           </span>
                         )}
                       </div>
                       {item.status_changed_at && (
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-[10px] text-white/30 mt-2 tracking-[0.04em]">
                           {new Date(item.status_changed_at).toLocaleDateString()}
                         </p>
                       )}

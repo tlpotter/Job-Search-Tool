@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AppliedButton } from "./applied-button";
 import { useIsDemo } from "./session-provider";
+import { Select } from "@/components/ui/input";
+import { Button, LinkButton } from "@/components/ui/button";
 
 const STATUS_OPTIONS = [
   { value: "not_reviewed", label: "Not reviewed" },
@@ -45,47 +47,45 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
   if (isDemo) {
     return (
       <div className="flex items-center gap-2 flex-wrap">
-        <a
-          href={applyUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn btn-primary btn-sm"
-        >
+        <LinkButton href={applyUrl} target="_blank" rel="noopener noreferrer" variant="primary" size="sm">
           View posting →
-        </a>
+        </LinkButton>
       </div>
     );
   }
 
   return (
     <div className="flex items-center gap-2 flex-wrap">
-      <select
+      <Select
         value={status}
+        size="sm"
         onChange={(e) => updateStatus(e.target.value)}
         disabled={saving}
-        className="select select-bordered select-sm border-base-300 w-auto"
+        className="w-auto min-w-[160px]"
       >
         {STATUS_OPTIONS.map((s) => (
           <option key={s.value} value={s.value}>{s.label}</option>
         ))}
-      </select>
+      </Select>
 
-      <button
-        onClick={() => updateStatus("not_interested")}
+      <Button
+        variant={status === "not_interested" ? "danger" : "ghost-bordered"}
+        size="sm"
         disabled={saving}
-        className={`btn btn-sm ${status === "not_interested" ? "btn-error btn-outline" : "btn-ghost border border-base-300"}`}
+        onClick={() => updateStatus("not_interested")}
       >
         Not Interested
-      </button>
+      </Button>
 
-      <button
-        onClick={() => updateStatus("zombie_listing")}
+      <Button
+        variant={status === "zombie_listing" ? "warning" : "ghost-bordered"}
+        size="sm"
         disabled={saving}
-        className={`btn btn-sm ${status === "zombie_listing" ? "btn-warning btn-outline" : "btn-ghost border border-base-300"}`}
+        onClick={() => updateStatus("zombie_listing")}
         title="Listing is dead/expired"
       >
         🧟 Zombie
-      </button>
+      </Button>
 
       <AppliedButton
         isApplied={status === "applied"}
@@ -93,14 +93,9 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
         onClick={() => updateStatus("applied")}
       />
 
-      <a
-        href={applyUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="btn btn-primary btn-sm"
-      >
+      <LinkButton href={applyUrl} target="_blank" rel="noopener noreferrer" variant="primary" size="sm">
         Apply →
-      </a>
+      </LinkButton>
     </div>
   );
 }
