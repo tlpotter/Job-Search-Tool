@@ -105,6 +105,16 @@ textarea:focus-visible {
   color: #fff;
 }
 
+/* Native <select> dropdown menu — force dark popup chrome */
+select {
+  color-scheme: dark;
+}
+option {
+  background-color: #0a1018;
+  color: #eef2ff;
+  padding: 8px 12px;
+}
+
 /* ────────────────────────────────────────────────────────────
    Glass surface (signature card pattern)
    ──────────────────────────────────────────────────────────── */

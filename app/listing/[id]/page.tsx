@@ -77,34 +77,30 @@ export default async function ListingPage({
 
         {/* Header card */}
         <div className="glass rounded-3xl p-8 md:p-10">
-          <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
-            <div className="min-w-0 flex-1">
-              <div className="eyebrow mb-3">{job.source}</div>
-              <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
-                {job.title}
-              </h1>
-              <p className="text-[18px] text-white/70 mb-5">{job.company}</p>
+          <div className="eyebrow mb-3">{job.source}</div>
+          <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
+            {job.title}
+          </h1>
+          <p className="text-[18px] text-white/70 mb-5">{job.company}</p>
 
-              <div className="flex flex-wrap gap-2">
-                <ScoreBadge score={job.relevance_score ?? 0} />
-                {job.ai_fit_score != null && (
-                  <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
-                )}
-                <CompanyHealthBadge
-                  rating={job.company_rating}
-                  redFlags={job.company_red_flags}
-                  reputationAvailable={job.company_reputation_available}
-                />
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2 mb-6">
+            <ScoreBadge score={job.relevance_score ?? 0} />
+            {job.ai_fit_score != null && (
+              <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
+            )}
+            <CompanyHealthBadge
+              rating={job.company_rating}
+              redFlags={job.company_red_flags}
+              reputationAvailable={job.company_reputation_available}
+            />
+          </div>
 
-            <div className="shrink-0">
-              <ListingActions
-                listingId={job.id}
-                applyUrl={job.url}
-                initialStatus={initialStatus}
-              />
-            </div>
+          <div className="pt-5 border-t border-white/[0.06]">
+            <ListingActions
+              listingId={job.id}
+              applyUrl={job.url}
+              initialStatus={initialStatus}
+            />
           </div>
         </div>
 
