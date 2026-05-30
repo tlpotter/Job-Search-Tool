@@ -67,19 +67,14 @@ export const jsearchSource: JobSource = {
       "principal UX designer remote",
       "senior interaction designer remote",
       "senior experience designer remote",
-      "design systems designer remote",
       "design technologist remote",
-      "UX engineer remote",
     ];
 
-    // Phoenix metro location-specific queries
+    // Phoenix metro location queries — Google Jobs treats multi-city strings
+    // as "in this area", so one call covers the whole metro.
     const phoenixQueries = [
-      "UX designer Phoenix Arizona",
-      "product designer Phoenix Arizona",
-      "UX designer Scottsdale Arizona",
-      "product designer Scottsdale Arizona",
-      "senior designer Tempe Arizona",
-      "UX designer Chandler Arizona",
+      "UX designer Phoenix Scottsdale Tempe Chandler Arizona",
+      "product designer Phoenix Scottsdale Tempe Chandler Arizona",
     ];
 
     // INITIAL_PULL=true in env does a deeper catch-up pull (5 pages, month range)
