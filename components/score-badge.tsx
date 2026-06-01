@@ -1,7 +1,7 @@
 "use client";
 
 interface ScoreBadgeProps {
-  score: number;
+  score: number | null | undefined;
   label?: string;
   size?: "sm" | "md" | "lg";
 }
@@ -9,7 +9,31 @@ interface ScoreBadgeProps {
 export function ScoreBadge({ score, label = "Score", size = "md" }: ScoreBadgeProps) {
   const isAI = label === "AI" || label === "AI Fit";
 
-  // Colors swapped from prior version: Score now sky, AI now green.
+  // 50% larger than the original sm/md
+  const padding =
+    size === "sm"
+      ? "px-3 py-1 text-[13px] tracking-[0.08em]"
+      : size === "lg"
+        ? "px-4 py-1.5 text-[17px] tracking-[0.06em]"
+        : "px-3.5 py-1.5 text-[15px] tracking-[0.06em]";
+
+  // No score yet — render a muted placeholder so the slot stays consistent
+  if (score == null) {
+    return (
+      <span
+        title={`${label} not yet computed`}
+        className={[
+          "inline-flex items-center font-semibold uppercase rounded-md border whitespace-nowrap",
+          "bg-white/[0.02] border-white/[0.07] text-white/30",
+          padding,
+        ].join(" ")}
+      >
+        {label}: —
+      </span>
+    );
+  }
+
+  // Colors swapped: Score = sky/blue, AI Fit = green
   const tone =
     score >= 70
       ? isAI
@@ -20,14 +44,6 @@ export function ScoreBadge({ score, label = "Score", size = "md" }: ScoreBadgePr
           ? "bg-[rgba(34,197,94,.08)] border-[rgba(34,197,94,.25)] text-[rgba(134,239,172,.95)]"
           : "bg-[rgba(56,189,248,.08)] border-[rgba(56,189,248,.2)] text-[rgba(125,211,252,.95)]"
         : "bg-white/[0.05] border-white/[0.1] text-white/55";
-
-  // 50% larger than the original sm/md
-  const padding =
-    size === "sm"
-      ? "px-3 py-1 text-[13px] tracking-[0.08em]"
-      : size === "lg"
-        ? "px-4 py-1.5 text-[17px] tracking-[0.06em]"
-        : "px-3.5 py-1.5 text-[15px] tracking-[0.06em]";
 
   return (
     <span

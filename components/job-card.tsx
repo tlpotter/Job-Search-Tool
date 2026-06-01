@@ -370,15 +370,15 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
             )}
           </div>
 
-          {/* Right column — scores */}
+          {/* Right column — scores (AI first, then base score) */}
           <div className="flex flex-col items-end gap-2 shrink-0">
             <button
               onClick={() => setShowScoreOverlay(true)}
               className="flex items-center gap-1.5 cursor-pointer group"
               title="Click for score breakdown"
             >
+              <ScoreBadge score={job.ai_fit_score ?? null} label="AI" size="sm" />
               <ScoreBadge score={score} size="sm" />
-              {job.ai_fit_score != null && <ScoreBadge score={job.ai_fit_score} label="AI" size="sm" />}
               <span className="text-white/20 group-hover:text-white/55 text-xs transition-colors">ⓘ</span>
             </button>
           </div>

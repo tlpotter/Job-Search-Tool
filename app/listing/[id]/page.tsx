@@ -85,21 +85,14 @@ export default async function ListingPage({
 
       <div className="max-w-[1024px] mx-auto px-6 md:px-10 py-8 space-y-6">
 
-        {/* Header card — JobCard-style: title L, scores R; actions BR */}
+        {/* Header card — source + scores top row, then title block, then actions */}
         <div className="glass rounded-3xl p-8 md:p-10">
-          <div className="flex items-start justify-between gap-6">
-            <div className="min-w-0 flex-1">
-              <div className="eyebrow mb-3">{job.source}</div>
-              <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
-                {job.title}
-              </h1>
-              <p className="text-[18px] text-white/70">{job.company}</p>
-            </div>
-            <div className="shrink-0 flex flex-col items-end gap-2">
+          {/* Top row: source eyebrow (L), scores (R) */}
+          <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
+            <div className="eyebrow">{job.source}</div>
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+              <ScoreBadge score={job.ai_fit_score ?? null} label="AI Fit" />
               <ScoreBadge score={job.relevance_score ?? 0} />
-              {job.ai_fit_score != null && (
-                <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
-              )}
               <CompanyHealthBadge
                 rating={job.company_rating}
                 redFlags={job.company_red_flags}
@@ -108,6 +101,13 @@ export default async function ListingPage({
             </div>
           </div>
 
+          {/* Title + company, full width */}
+          <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
+            {job.title}
+          </h1>
+          <p className="text-[18px] text-white/70">{job.company}</p>
+
+          {/* Actions row */}
           <div className="pt-6 mt-6 border-t border-white/[0.06]">
             <ListingActions
               listingId={job.id}
