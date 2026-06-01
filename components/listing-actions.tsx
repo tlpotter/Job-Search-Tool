@@ -46,22 +46,22 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
 
   if (isDemo) {
     return (
-      <div className="flex items-center gap-2 flex-wrap">
+      <div className="flex items-center gap-2 flex-wrap justify-end">
         <LinkButton href={applyUrl} target="_blank" rel="noopener noreferrer" variant="primary" size="sm">
-          View posting →
+          👀 View posting →
         </LinkButton>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap">
+    <div className="flex items-center gap-2 flex-wrap justify-end">
       <Select
         value={status}
         size="sm"
         onChange={(e) => updateStatus(e.target.value)}
         disabled={saving}
-        className="w-auto min-w-[160px]"
+        className="w-auto min-w-[80px]"
       >
         {STATUS_OPTIONS.map((s) => (
           <option key={s.value} value={s.value}>{s.label}</option>
@@ -74,7 +74,7 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
         disabled={saving}
         onClick={() => updateStatus("not_interested")}
       >
-        Not Interested
+        👎 Not a Fit
       </Button>
 
       <Button
@@ -94,7 +94,7 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
       />
 
       <LinkButton href={applyUrl} target="_blank" rel="noopener noreferrer" variant="primary" size="sm">
-        Apply →
+        🚀 Apply →
       </LinkButton>
     </div>
   );

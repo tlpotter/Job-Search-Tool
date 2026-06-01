@@ -69,7 +69,8 @@ const statusLabels: Record<string, string> = {
 };
 
 function glassdoorUrl(company: string) {
-  return `https://www.glassdoor.com/Search/results.htm?keyword=${encodeURIComponent(company)}`;
+  // Companies/reviews search rather than jobs
+  return `https://www.glassdoor.com/Reviews/company-reviews.htm?sc.keyword=${encodeURIComponent(company)}`;
 }
 
 function formatPostedDate(dateStr?: string | null): string {
@@ -391,7 +392,7 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
                 value={status}
                 size="xs"
                 onChange={(e) => onStatusChange?.(job.id, e.target.value)}
-                className="mr-auto w-auto min-w-[140px]"
+                className="mr-auto w-auto min-w-[70px]"
               >
                 {statusOptions.map((s) => (
                   <option key={s} value={s}>{statusLabels[s]}</option>
@@ -402,7 +403,7 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
                 size="sm"
                 onClick={() => onStatusChange?.(job.id, "not_interested")}
               >
-                Not a Fit
+                👎 Not a Fit
               </Button>
               <Button
                 variant={status === "zombie_listing" ? "warning" : "ghost-bordered"}
@@ -425,7 +426,7 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
             variant="primary"
             size="sm"
           >
-            {isDemo ? "View posting →" : "Apply →"}
+            {isDemo ? "👀 View posting →" : "🚀 Apply →"}
           </LinkButton>
         </div>
       </div>

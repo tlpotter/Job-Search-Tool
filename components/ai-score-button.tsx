@@ -81,7 +81,7 @@ export function AiScoreButton({
         </div>
 
         {result.summary && (
-          <p className="text-[15px] text-white/70 italic font-serif font-light border-l-2 border-[rgba(56,189,248,.35)] pl-4 leading-relaxed">
+          <p className="text-[17px] text-white/85 border-l-2 border-[rgba(56,189,248,.35)] pl-4 leading-relaxed">
             {result.summary}
           </p>
         )}

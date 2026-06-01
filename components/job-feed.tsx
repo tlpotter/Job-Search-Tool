@@ -7,9 +7,25 @@ import { FilterSidebar, Filters, DEFAULT_FILTERS } from "./filter-sidebar";
 import { useIsDemo } from "./session-provider";
 import { Select } from "@/components/ui/input";
 
+const FILTERS_STORAGE_KEY = "job-crawler:filters:v1";
+
+function loadStoredFilters(): Filters {
+  if (typeof window === "undefined") return DEFAULT_FILTERS;
+  try {
+    const raw = window.localStorage.getItem(FILTERS_STORAGE_KEY);
+    if (!raw) return DEFAULT_FILTERS;
+    const parsed = JSON.parse(raw);
+    // Merge with defaults so new filter fields work for users with old saved state
+    return { ...DEFAULT_FILTERS, ...parsed };
+  } catch {
+    return DEFAULT_FILTERS;
+  }
+}
+
 export function JobFeed() {
   const isDemo = useIsDemo();
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [filtersHydrated, setFiltersHydrated] = useState(false);
   const [jobs, setJobs] = useState<unknown[]>([]);
   const [total, setTotal] = useState(0);
   const [dbTotal, setDbTotal] = useState(0);
@@ -20,6 +36,22 @@ export function JobFeed() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Restore filters from localStorage on first client render
+  useEffect(() => {
+    setFilters(loadStoredFilters());
+    setFiltersHydrated(true);
+  }, []);
+
+  // Persist filters whenever they change (after hydration)
+  useEffect(() => {
+    if (!filtersHydrated) return;
+    try {
+      window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify(filters));
+    } catch {
+      // localStorage can throw in private-mode/quota situations; ignore
+    }
+  }, [filters, filtersHydrated]);
 
   function buildParams(f: Filters, off: number) {
     const params = new URLSearchParams({
@@ -87,10 +119,12 @@ export function JobFeed() {
     }
   }, [loadingMore]);
 
-  // Refetch on filter change
+  // Refetch on filter change — but wait until localStorage has been read
+  // so we don't fire one request with defaults and another with stored filters
   useEffect(() => {
+    if (!filtersHydrated) return;
     fetchInitial(filters);
-  }, [filters, fetchInitial]);
+  }, [filters, fetchInitial, filtersHydrated]);
 
   // Intersection observer for infinite scroll
   useEffect(() => {

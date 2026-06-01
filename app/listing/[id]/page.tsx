@@ -42,7 +42,6 @@ export default async function ListingPage({
     );
   }
 
-  // user_actions is returned as an array by Supabase joins — normalize it
   const userActions = Array.isArray(job.user_actions) ? job.user_actions[0] : job.user_actions;
   const initialStatus = userActions?.status;
 
@@ -52,12 +51,23 @@ export default async function ListingPage({
       ? `~${job.estimated_salary} (estimated)`
       : "Not available";
 
-  const Row = ({ label, children }: { label: string; children: React.ReactNode }) => (
-    <div className="flex items-baseline justify-between gap-4 py-2 border-b border-white/[0.04] last:border-0">
-      <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">{label}</dt>
-      <dd className="text-[14px] text-white/85 text-right">{children}</dd>
-    </div>
-  );
+  // Job-details items rendered in a flexible 2/3-col grid so card stays short and wide
+  const detailItems: { label: string; value: React.ReactNode }[] = [
+    { label: "Location", value: <>{job.location}{job.remote ? " (Remote)" : ""}</> },
+    {
+      label: "Salary",
+      value: (
+        <span className={job.salary_below_floor ? "text-[rgba(251,180,100,.95)] font-medium" : ""}>
+          {salaryDisplay}
+          {job.salary_below_floor && " ⚠️"}
+        </span>
+      ),
+    },
+    { label: "Posted", value: job.posted_date ?? "Unknown" },
+    { label: "Source", value: <span className="capitalize">{job.source}</span> },
+    { label: "Role type", value: <span className="capitalize">{job.role_type ?? "Unknown"}</span> },
+    { label: "Company size", value: <span className="capitalize">{job.company_size ?? "Unknown"}</span> },
+  ];
 
   return (
     <div className="min-h-screen">
@@ -75,27 +85,30 @@ export default async function ListingPage({
 
       <div className="max-w-[1024px] mx-auto px-6 md:px-10 py-8 space-y-6">
 
-        {/* Header card */}
+        {/* Header card — JobCard-style: title L, scores R; actions BR */}
         <div className="glass rounded-3xl p-8 md:p-10">
-          <div className="eyebrow mb-3">{job.source}</div>
-          <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
-            {job.title}
-          </h1>
-          <p className="text-[18px] text-white/70 mb-5">{job.company}</p>
-
-          <div className="flex flex-wrap gap-2 mb-6">
-            <ScoreBadge score={job.relevance_score ?? 0} />
-            {job.ai_fit_score != null && (
-              <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
-            )}
-            <CompanyHealthBadge
-              rating={job.company_rating}
-              redFlags={job.company_red_flags}
-              reputationAvailable={job.company_reputation_available}
-            />
+          <div className="flex items-start justify-between gap-6">
+            <div className="min-w-0 flex-1">
+              <div className="eyebrow mb-3">{job.source}</div>
+              <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
+                {job.title}
+              </h1>
+              <p className="text-[18px] text-white/70">{job.company}</p>
+            </div>
+            <div className="shrink-0 flex flex-col items-end gap-2">
+              <ScoreBadge score={job.relevance_score ?? 0} />
+              {job.ai_fit_score != null && (
+                <ScoreBadge score={job.ai_fit_score} label="AI Fit" />
+              )}
+              <CompanyHealthBadge
+                rating={job.company_rating}
+                redFlags={job.company_red_flags}
+                reputationAvailable={job.company_reputation_available}
+              />
+            </div>
           </div>
 
-          <div className="pt-5 border-t border-white/[0.06]">
+          <div className="pt-6 mt-6 border-t border-white/[0.06]">
             <ListingActions
               listingId={job.id}
               applyUrl={job.url}
@@ -104,60 +117,29 @@ export default async function ListingPage({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {/* Job details — full width, 2-col grid so card stays short */}
+        <div className="glass rounded-2xl p-7">
+          <div className="eyebrow mb-5 !text-[11px]">Job Details</div>
+          <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3">
+            {detailItems.map((item) => (
+              <div
+                key={item.label}
+                className="flex items-baseline justify-between gap-4 border-b border-white/[0.04] pb-2"
+              >
+                <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">
+                  {item.label}
+                </dt>
+                <dd className="text-[14px] text-white/85 text-right">{item.value}</dd>
+              </div>
+            ))}
+          </dl>
 
-          {/* Job details */}
-          <div className="glass rounded-2xl p-7 space-y-1">
-            <div className="eyebrow mb-4 !text-[11px]">Job Details</div>
-            <dl>
-              <Row label="Location">{job.location}{job.remote ? " (Remote)" : ""}</Row>
-              <Row label="Salary">
-                <span className={job.salary_below_floor ? "text-[rgba(251,180,100,.95)] font-medium" : ""}>
-                  {salaryDisplay}
-                  {job.salary_below_floor && " ⚠️"}
-                </span>
-              </Row>
-              <Row label="Posted">{job.posted_date ?? "Unknown"}</Row>
-              <Row label="Source"><span className="capitalize">{job.source}</span></Row>
-              <Row label="Role type"><span className="capitalize">{job.role_type ?? "Unknown"}</span></Row>
-              <Row label="Company size"><span className="capitalize">{job.company_size ?? "Unknown"}</span></Row>
-            </dl>
-
-            <div className="flex flex-wrap gap-1.5 pt-4">
-              {job.has_benefits_info && <Badge>🔥 Benefits</Badge>}
-              {job.has_equity && <Badge variant="orange">📈 Equity</Badge>}
-              {job.mentions_design_systems && <Badge>🧩 Design Systems</Badge>}
-              {job.mentions_ai && <Badge variant="sky">🤖 AI</Badge>}
-              {job.is_agency && <Badge variant="warning">🏷️ Agency</Badge>}
-            </div>
-          </div>
-
-          {/* Company reputation */}
-          <div className="glass rounded-2xl p-7 space-y-1">
-            <div className="eyebrow mb-4 !text-[11px]">Company</div>
-            {job.company_reputation_available ? (
-              <dl>
-                {job.company_rating != null && <Row label="Glassdoor">{job.company_rating}/5.0</Row>}
-                {job.company_wlb != null && <Row label="Work-life balance">{job.company_wlb}/5.0</Row>}
-                <Row label="Growth trend"><span className="capitalize">{job.company_growth_trend ?? "Unknown"}</span></Row>
-                {job.company_headcount != null && <Row label="Headcount">{job.company_headcount.toLocaleString()}</Row>}
-                {job.company_red_flags && job.company_red_flags.length > 0 && (
-                  <div className="pt-3">
-                    <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 mb-2">Red Flags</div>
-                    <ul className="space-y-1.5">
-                      {job.company_red_flags.map((flag: string) => (
-                        <li key={flag} className="text-[13px] text-[rgba(255,180,180,.95)] flex items-start gap-2">
-                          <span className="mt-0.5">⚠️</span>
-                          <span>{flag}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </dl>
-            ) : (
-              <p className="text-[13px] text-white/40">No reputation data available</p>
-            )}
+          <div className="flex flex-wrap gap-1.5 pt-5">
+            {job.has_benefits_info && <Badge>🔥 Benefits</Badge>}
+            {job.has_equity && <Badge variant="orange">📈 Equity</Badge>}
+            {job.mentions_design_systems && <Badge>🧩 Design Systems</Badge>}
+            {job.mentions_ai && <Badge variant="sky">🤖 AI</Badge>}
+            {job.is_agency && <Badge variant="warning">🏷️ Agency</Badge>}
           </div>
         </div>
 
@@ -174,11 +156,59 @@ export default async function ListingPage({
         {job.description && (
           <div className="glass rounded-2xl p-7">
             <div className="eyebrow mb-4 !text-[11px]">Description</div>
-            <div className="text-[15px] text-white/75 whitespace-pre-wrap leading-[1.85] max-h-[480px] overflow-y-auto pr-2">
+            <div className="text-[15px] text-white/75 whitespace-pre-wrap leading-[1.85] max-h-[640px] overflow-y-auto pr-2">
               {cleanDescription(job.description)}
             </div>
           </div>
         )}
+
+        {/* Company — moved to bottom */}
+        <div className="glass rounded-2xl p-7">
+          <div className="eyebrow mb-5 !text-[11px]">Company</div>
+          {job.company_reputation_available ? (
+            <>
+              <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3">
+                {job.company_rating != null && (
+                  <div className="flex items-baseline justify-between gap-4 border-b border-white/[0.04] pb-2">
+                    <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">Glassdoor</dt>
+                    <dd className="text-[14px] text-white/85 text-right">{job.company_rating}/5.0</dd>
+                  </div>
+                )}
+                {job.company_wlb != null && (
+                  <div className="flex items-baseline justify-between gap-4 border-b border-white/[0.04] pb-2">
+                    <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">Work-life balance</dt>
+                    <dd className="text-[14px] text-white/85 text-right">{job.company_wlb}/5.0</dd>
+                  </div>
+                )}
+                <div className="flex items-baseline justify-between gap-4 border-b border-white/[0.04] pb-2">
+                  <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">Growth trend</dt>
+                  <dd className="text-[14px] text-white/85 text-right capitalize">{job.company_growth_trend ?? "Unknown"}</dd>
+                </div>
+                {job.company_headcount != null && (
+                  <div className="flex items-baseline justify-between gap-4 border-b border-white/[0.04] pb-2">
+                    <dt className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 shrink-0">Headcount</dt>
+                    <dd className="text-[14px] text-white/85 text-right">{job.company_headcount.toLocaleString()}</dd>
+                  </div>
+                )}
+              </dl>
+              {job.company_red_flags && job.company_red_flags.length > 0 && (
+                <div className="pt-5">
+                  <div className="text-[11px] font-bold tracking-[0.12em] uppercase text-white/45 mb-2">Red Flags</div>
+                  <ul className="space-y-1.5">
+                    {job.company_red_flags.map((flag: string) => (
+                      <li key={flag} className="text-[13px] text-[rgba(255,180,180,.95)] flex items-start gap-2">
+                        <span className="mt-0.5">⚠️</span>
+                        <span>{flag}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-[13px] text-white/40">No reputation data available</p>
+          )}
+        </div>
       </div>
     </div>
   );
