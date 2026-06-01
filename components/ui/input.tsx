@@ -1,7 +1,7 @@
 import { forwardRef, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes } from "react";
 
 const inputBase =
-  "w-full bg-white/5 hover:bg-white/[0.07] focus:bg-white/[0.07] border border-white/10 hover:border-white/15 focus:border-[rgba(56,189,248,.5)] rounded-[10px] text-white text-[15px] outline-none transition-colors duration-200 placeholder:text-white/30 disabled:opacity-50 disabled:cursor-not-allowed";
+  "bg-white/5 hover:bg-white/[0.07] focus:bg-white/[0.07] border border-white/10 hover:border-white/15 focus:border-[rgba(56,189,248,.5)] rounded-[10px] text-white text-[15px] outline-none transition-colors duration-200 placeholder:text-white/30 disabled:opacity-50 disabled:cursor-not-allowed";
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {}
 
@@ -9,7 +9,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ className = "", ...props }, ref) => (
     <input
       ref={ref}
-      className={`${inputBase} px-4 py-3 ${className}`}
+      className={`${inputBase} w-full px-4 py-3 ${className}`}
       {...props}
     />
   )
@@ -48,7 +48,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
   ({ className = "", ...props }, ref) => (
     <textarea
       ref={ref}
-      className={`${inputBase} px-4 py-3 resize-y ${className}`}
+      className={`${inputBase} w-full px-4 py-3 resize-y ${className}`}
       {...props}
     />
   )

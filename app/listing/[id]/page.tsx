@@ -91,21 +91,23 @@ export default async function ListingPage({
           <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
             <div className="eyebrow">{job.source}</div>
             <div className="flex items-center gap-2 flex-wrap justify-end">
-              <ScoreBadge score={job.ai_fit_score ?? null} label="AI Fit" />
-              <ScoreBadge score={job.relevance_score ?? 0} />
-              <CompanyHealthBadge
-                rating={job.company_rating}
-                redFlags={job.company_red_flags}
-                reputationAvailable={job.company_reputation_available}
-              />
+              <ScoreBadge score={job.ai_fit_score ?? null} label="AI Fit" size="sm" />
+              <ScoreBadge score={job.relevance_score ?? 0} size="sm" />
+              {job.company_reputation_available && (
+                <CompanyHealthBadge
+                  rating={job.company_rating}
+                  redFlags={job.company_red_flags}
+                  reputationAvailable={job.company_reputation_available}
+                />
+              )}
             </div>
           </div>
 
           {/* Title + company, full width */}
-          <h1 className="font-serif text-[clamp(28px,3.5vw,42px)] font-semibold leading-[1.1] text-white mb-3">
+          <h1 className="font-serif text-[clamp(20px,2.2vw,28px)] font-semibold leading-[1.15] text-white mb-2">
             {job.title}
           </h1>
-          <p className="text-[18px] text-white/70">{job.company}</p>
+          <p className="text-[15px] text-white/65">{job.company}</p>
 
           {/* Actions row */}
           <div className="pt-6 mt-6 border-t border-white/[0.06]">

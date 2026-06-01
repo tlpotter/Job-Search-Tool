@@ -61,7 +61,7 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
         size="sm"
         onChange={(e) => updateStatus(e.target.value)}
         disabled={saving}
-        className="w-[110px]"
+        className="w-[55px]"
       >
         {STATUS_OPTIONS.map((s) => (
           <option key={s.value} value={s.value}>{s.label}</option>
