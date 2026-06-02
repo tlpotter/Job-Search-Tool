@@ -14,11 +14,15 @@ import { remotiveSource } from "./sources/remotive";
 import { coroflotSource } from "./sources/coroflot";
 import { hnHiringSource } from "./sources/hn-hiring";
 import { ashbySource } from "./sources/ashby";
+import { bamboohrSource } from "./sources/bamboohr";
+import { workdaySource } from "./sources/workday";
 // indeedSource: blocked by Indeed security check (CAPTCHA on RSS endpoint)
 // the-muse: API returns 0 UX/Design results
 // builtin: client-rendered React app, no accessible API
 // workable: big tech companies don't use it, returns empty
+// icims: requires HTML scraping of JS-rendered pages, too fragile
 import { dedup, saveListings } from "./dedup";
+import { cleanupOldListings } from "./cleanup";
 import { classifyListing } from "./classify";
 import { estimateSalary } from "./salary-estimate";
 import { lookupCompanyReputation, enrichWithReputation } from "./company-reputation";
@@ -39,6 +43,8 @@ const sources = [
   coroflotSource,
   hnHiringSource,
   ashbySource,
+  bamboohrSource,
+  workdaySource,
 ];
 
 async function fetchAllSources(): Promise<JobListing[]> {
@@ -72,7 +78,8 @@ export async function runCrawler(): Promise<void> {
   console.log(`  New listings: ${newListings.length}\n`);
 
   if (newListings.length === 0) {
-    console.log("No new listings — sending digest of existing top matches.");
+    console.log("No new listings — cleaning up + sending digest of existing top matches.");
+    await cleanupOldListings(30);
     await sendDigest();
     return;
   }
@@ -165,6 +172,10 @@ export async function runCrawler(): Promise<void> {
   console.log("\nSaving to Supabase (final save with AI scores)...");
   await saveListings(withReputation);
   console.log(`  Updated ${withReputation.length} listings`);
+
+  // Cleanup: delete unactioned listings older than 30 days
+  console.log("\nCleaning up stale listings...");
+  await cleanupOldListings(30);
 
   // Send email digest (pulls top unreviewed listings from DB)
   console.log("Sending email digest...");
