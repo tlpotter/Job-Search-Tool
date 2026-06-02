@@ -231,17 +231,14 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
           <option value="">All sources</option>
           <option value="adzuna">Adzuna</option>
           <option value="jsearch">JSearch</option>
-          <option value="indeed">Indeed</option>
           <option value="greenhouse">Greenhouse</option>
           <option value="lever">Lever</option>
           <option value="ashby">Ashby</option>
-          <option value="dribbble">Dribbble</option>
+          <option value="bamboohr">BambooHR</option>
+          <option value="workday">Workday</option>
           <option value="remoteok">Remote OK</option>
           <option value="weworkremotely">We Work Remotely</option>
           <option value="jobicy">Jobicy</option>
-          <option value="remotive">Remotive</option>
-          <option value="coroflot">Coroflot</option>
-          <option value="hn-hiring">HN Who&apos;s Hiring</option>
         </Select>
       </Section>
 

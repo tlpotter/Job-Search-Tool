@@ -4,23 +4,22 @@ import { searchConfig } from "../config";
 import { JobListing } from "./types";
 import { adzunaSource } from "./sources/adzuna";
 import { jsearchSource } from "./sources/jsearch";
-import { dribbbleSource } from "./sources/dribbble";
 import { remoteokSource } from "./sources/remoteok";
 import { weworkremotelySource } from "./sources/weworkremotely";
 import { greenhouseSource } from "./sources/greenhouse";
 import { leverSource } from "./sources/lever";
 import { jobicySource } from "./sources/jobicy";
-import { remotiveSource } from "./sources/remotive";
-import { coroflotSource } from "./sources/coroflot";
-import { hnHiringSource } from "./sources/hn-hiring";
 import { ashbySource } from "./sources/ashby";
 import { bamboohrSource } from "./sources/bamboohr";
 import { workdaySource } from "./sources/workday";
-// indeedSource: blocked by Indeed security check (CAPTCHA on RSS endpoint)
-// the-muse: API returns 0 UX/Design results
-// builtin: client-rendered React app, no accessible API
-// workable: big tech companies don't use it, returns empty
-// icims: requires HTML scraping of JS-rendered pages, too fragile
+// Removed (zero high-quality listings over months of running):
+//   coroflot, dribbble, hn-hiring, remotive
+// Other excluded:
+//   indeed: blocked by CAPTCHA on RSS endpoint
+//   the-muse: API returns 0 UX/Design results
+//   builtin: client-rendered React app, no accessible API
+//   workable: big tech companies don't use it, returns empty
+//   icims: requires HTML scraping of JS-rendered pages, too fragile
 import { dedup, saveListings } from "./dedup";
 import { cleanupOldListings } from "./cleanup";
 import { classifyListing } from "./classify";
@@ -33,15 +32,11 @@ import { sendDigest } from "../email/send";
 const sources = [
   adzunaSource,
   jsearchSource,
-  dribbbleSource,
   remoteokSource,
   weworkremotelySource,
   greenhouseSource,
   leverSource,
   jobicySource,
-  remotiveSource,
-  coroflotSource,
-  hnHiringSource,
   ashbySource,
   bamboohrSource,
   workdaySource,
