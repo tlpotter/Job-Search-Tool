@@ -42,7 +42,16 @@ CREATE TABLE IF NOT EXISTS listings (
   ai_fit_score INTEGER,
   ai_fit_summary TEXT,
   ai_skill_gaps TEXT[],
-  ai_highlights TEXT[]
+  ai_highlights TEXT[],
+  ai_description_summary TEXT,
+
+  -- AI sub-scores (0-100 each). Weighted total becomes ai_fit_score.
+  -- Weights: role 35%, company 25%, comp 15%, industry 15%, growth 10%.
+  ai_score_role INTEGER,
+  ai_score_company INTEGER,
+  ai_score_comp INTEGER,
+  ai_score_industry INTEGER,
+  ai_score_growth INTEGER
 );
 
 CREATE TABLE IF NOT EXISTS user_actions (

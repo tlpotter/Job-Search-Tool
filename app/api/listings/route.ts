@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
     id, title, company, location, remote, url,
     salary, estimated_salary, salary_source, salary_below_floor,
     posted_date, relevance_score, ai_fit_score, ai_fit_summary, ai_description_summary,
+    ai_score_role, ai_score_company, ai_score_comp, ai_score_industry, ai_score_growth,
     source, role_type, company_size, has_equity, has_benefits_info,
     mentions_design_systems, mentions_ai, is_agency,
     company_rating, company_red_flags, company_growth_trend, company_reputation_available,

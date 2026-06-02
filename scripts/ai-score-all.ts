@@ -43,6 +43,7 @@ async function main() {
           description: row.description,
           salary: row.salary,
           estimatedSalary: row.estimated_salary,
+          salarySource: row.salary_source,
           companyRating: row.company_rating,
           companyWorkLifeBalance: row.company_wlb,
           companyGrowthTrend: row.company_growth_trend,
@@ -59,6 +60,11 @@ async function main() {
           ai_skill_gaps: result.gaps,
           ai_highlights: result.highlights,
           ai_description_summary: result.descriptionSummary ?? null,
+          ai_score_role: result.scoreRole,
+          ai_score_company: result.scoreCompany,
+          ai_score_comp: result.scoreComp,
+          ai_score_industry: result.scoreIndustry,
+          ai_score_growth: result.scoreGrowth,
         }).eq("id", row.id);
 
         done++;

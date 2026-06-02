@@ -10,6 +10,71 @@ interface AiScoreResult {
   summary: string;
   gaps: string[];
   highlights: string[];
+  scoreRole?: number | null;
+  scoreCompany?: number | null;
+  scoreComp?: number | null;
+  scoreIndustry?: number | null;
+  scoreGrowth?: number | null;
+}
+
+const AXIS_LABELS: { key: keyof AiScoreResult; label: string; weight: number }[] = [
+  { key: "scoreRole",     label: "Role & skills",    weight: 0.35 },
+  { key: "scoreCompany",  label: "Company health",   weight: 0.25 },
+  { key: "scoreComp",     label: "Compensation",     weight: 0.15 },
+  { key: "scoreIndustry", label: "Industry fit",     weight: 0.15 },
+  { key: "scoreGrowth",   label: "Growth signals",   weight: 0.10 },
+];
+
+function axisTone(score: number): string {
+  if (score >= 75) return "text-[rgba(134,239,172,1)]";
+  if (score >= 55) return "text-[rgba(125,211,252,1)]";
+  if (score >= 40) return "text-[rgba(251,180,100,.95)]";
+  return "text-[rgba(255,180,180,.95)]";
+}
+
+function ScoreBreakdown({ result }: { result: AiScoreResult }) {
+  const any = AXIS_LABELS.some((a) => result[a.key] != null);
+  if (!any) return null;
+
+  return (
+    <div>
+      <div className="eyebrow mb-3 !text-[11px]">Score breakdown</div>
+      <div className="space-y-2">
+        {AXIS_LABELS.map(({ key, label, weight }) => {
+          const score = result[key] as number | null | undefined;
+          if (score == null) return null;
+          const pct = `${Math.round(weight * 100)}%`;
+          return (
+            <div key={key} className="flex items-center gap-3">
+              <div className="w-[140px] shrink-0 text-[13px] text-white/70">
+                {label}
+                <span className="text-white/30 ml-2 text-[11px]">{pct}</span>
+              </div>
+              <div className="flex-1 h-2 rounded-full bg-white/[0.05] overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-500"
+                  style={{
+                    width: `${score}%`,
+                    background:
+                      score >= 75
+                        ? "linear-gradient(90deg, rgba(34,197,94,.6), rgba(134,239,172,.9))"
+                        : score >= 55
+                          ? "linear-gradient(90deg, rgba(56,189,248,.6), rgba(125,211,252,.9))"
+                          : score >= 40
+                            ? "linear-gradient(90deg, rgba(251,146,60,.6), rgba(251,180,100,.9))"
+                            : "linear-gradient(90deg, rgba(255,80,80,.5), rgba(255,180,180,.85))",
+                  }}
+                />
+              </div>
+              <div className={`w-9 shrink-0 text-right text-[13px] font-semibold tabular-nums ${axisTone(score)}`}>
+                {score}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 export function AiScoreButton({
@@ -18,12 +83,20 @@ export function AiScoreButton({
   initialSummary,
   initialGaps,
   initialHighlights,
+  initialBreakdown,
 }: {
   listingId: string;
   initialScore?: number | null;
   initialSummary?: string | null;
   initialGaps?: string[] | null;
   initialHighlights?: string[] | null;
+  initialBreakdown?: {
+    scoreRole?: number | null;
+    scoreCompany?: number | null;
+    scoreComp?: number | null;
+    scoreIndustry?: number | null;
+    scoreGrowth?: number | null;
+  };
 }) {
   const isDemo = useIsDemo();
   const [loading, setLoading] = useState(false);
@@ -34,6 +107,7 @@ export function AiScoreButton({
           summary: initialSummary ?? "",
           gaps: initialGaps ?? [],
           highlights: initialHighlights ?? [],
+          ...initialBreakdown,
         }
       : null
   );
@@ -79,6 +153,8 @@ export function AiScoreButton({
             )}
           </div>
         </div>
+
+        <ScoreBreakdown result={result} />
 
         {result.summary && (
           <p className="text-[17px] text-white/85 border-l-2 border-[rgba(56,189,248,.35)] pl-4 leading-relaxed">

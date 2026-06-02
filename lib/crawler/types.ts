@@ -45,6 +45,13 @@ export interface JobListing {
   aiSkillGaps?: string[];
   aiHighlights?: string[];
   aiDescriptionSummary?: string;
+
+  // AI sub-scores (0-100). Weighted to produce aiFitScore.
+  aiScoreRole?: number;
+  aiScoreCompany?: number;
+  aiScoreComp?: number;
+  aiScoreIndustry?: number;
+  aiScoreGrowth?: number;
 }
 
 export interface JobSource {

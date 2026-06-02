@@ -152,6 +152,13 @@ export default async function ListingPage({
           initialSummary={job.ai_fit_summary}
           initialGaps={job.ai_skill_gaps}
           initialHighlights={job.ai_highlights}
+          initialBreakdown={{
+            scoreRole: job.ai_score_role,
+            scoreCompany: job.ai_score_company,
+            scoreComp: job.ai_score_comp,
+            scoreIndustry: job.ai_score_industry,
+            scoreGrowth: job.ai_score_growth,
+          }}
         />
 
         {/* Description */}

@@ -147,6 +147,11 @@ export async function runCrawler(): Promise<void> {
         job.aiSkillGaps = aiResult.gaps;
         job.aiHighlights = aiResult.highlights;
         job.aiDescriptionSummary = aiResult.descriptionSummary;
+        job.aiScoreRole = aiResult.scoreRole;
+        job.aiScoreCompany = aiResult.scoreCompany;
+        job.aiScoreComp = aiResult.scoreComp;
+        job.aiScoreIndustry = aiResult.scoreIndustry;
+        job.aiScoreGrowth = aiResult.scoreGrowth;
       } catch (err) {
         console.error(`  AI rank failed for ${job.title} @ ${job.company}:`, err);
       }

@@ -183,6 +183,11 @@ export async function saveListings(listings: JobListing[]): Promise<void> {
     if (job.aiSkillGaps != null)          row.ai_skill_gaps = job.aiSkillGaps.map((g) => sanitizeText(g) ?? "");
     if (job.aiHighlights != null)         row.ai_highlights = job.aiHighlights.map((h) => sanitizeText(h) ?? "");
     if (job.aiDescriptionSummary != null) row.ai_description_summary = sanitizeText(job.aiDescriptionSummary);
+    if (job.aiScoreRole != null)          row.ai_score_role = job.aiScoreRole;
+    if (job.aiScoreCompany != null)       row.ai_score_company = job.aiScoreCompany;
+    if (job.aiScoreComp != null)          row.ai_score_comp = job.aiScoreComp;
+    if (job.aiScoreIndustry != null)      row.ai_score_industry = job.aiScoreIndustry;
+    if (job.aiScoreGrowth != null)        row.ai_score_growth = job.aiScoreGrowth;
 
     return row;
   });
