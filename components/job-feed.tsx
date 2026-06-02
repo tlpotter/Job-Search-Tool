@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { JobCard } from "./job-card";
 import { JobCardSkeleton } from "./job-card-skeleton";
-import { FilterSidebar, Filters, DEFAULT_FILTERS } from "./filter-sidebar";
+import { FilterSidebar, Filters, DEFAULT_FILTERS, activeFilterCount } from "./filter-sidebar";
 import { useIsDemo } from "./session-provider";
 import { Select } from "@/components/ui/input";
 
@@ -26,6 +26,7 @@ export function JobFeed() {
   const isDemo = useIsDemo();
   const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
   const [filtersHydrated, setFiltersHydrated] = useState(false);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [jobs, setJobs] = useState<unknown[]>([]);
   const [total, setTotal] = useState(0);
   const [dbTotal, setDbTotal] = useState(0);
@@ -225,11 +226,44 @@ export function JobFeed() {
     return s >= 40 && s < 70;
   });
 
+  const activeCount = activeFilterCount(filters);
+
   return (
-    <div className="flex gap-8">
-      <FilterSidebar filters={filters} onChange={setFilters} />
+    <div className="flex lg:gap-8">
+      <FilterSidebar
+        filters={filters}
+        onChange={setFilters}
+        mobileOpen={mobileFiltersOpen}
+        onMobileClose={() => setMobileFiltersOpen(false)}
+      />
 
       <main className="flex-1 min-w-0">
+        {/* Mobile filter toggle (only visible <lg) */}
+        <div className="lg:hidden mb-5 flex items-center gap-2">
+          <button
+            onClick={() => setMobileFiltersOpen(true)}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-[10px] border border-white/[0.1] bg-white/[0.04] hover:bg-white/[0.07] text-white/85 text-[13px] font-semibold tracking-[0.04em] transition-colors"
+          >
+            <svg viewBox="0 0 16 16" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round">
+              <path d="M2 4h12M4 8h8M6 12h4" />
+            </svg>
+            Filters
+            {activeCount > 0 && (
+              <span className="inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold bg-[rgba(251,146,60,.85)] text-white">
+                {activeCount}
+              </span>
+            )}
+          </button>
+          {activeCount > 0 && (
+            <button
+              onClick={() => setFilters(DEFAULT_FILTERS)}
+              className="text-[11px] font-semibold tracking-[0.12em] uppercase text-white/45 hover:text-[rgba(251,146,60,.95)] transition-colors px-2"
+            >
+              Reset
+            </button>
+          )}
+        </div>
+
         {loading && (
           <div className="space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (

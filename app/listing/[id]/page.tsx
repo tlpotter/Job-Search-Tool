@@ -73,7 +73,7 @@ export default async function ListingPage({
     <div className="min-h-screen">
       <AppHeader />
 
-      <div className="max-w-[1024px] mx-auto px-6 md:px-10 pt-4">
+      <div className="max-w-[1024px] mx-auto px-4 sm:px-6 md:px-10 pt-4">
         <Link
           href="/"
           className="inline-flex items-center gap-2 text-[12px] font-semibold tracking-[0.12em] uppercase text-[rgba(56,189,248,.75)] hover:text-[rgba(56,189,248,1)] transition-colors duration-300 group"
@@ -83,10 +83,10 @@ export default async function ListingPage({
         </Link>
       </div>
 
-      <div className="max-w-[1024px] mx-auto px-6 md:px-10 py-8 space-y-6">
+      <div className="max-w-[1024px] mx-auto px-4 sm:px-6 md:px-10 py-6 sm:py-8 space-y-5 sm:space-y-6">
 
         {/* Header card — source + scores top row, then title block, then actions */}
-        <div className="glass rounded-3xl p-8 md:p-10">
+        <div className="glass rounded-2xl sm:rounded-3xl p-5 sm:p-8 md:p-10">
           {/* Top row: source eyebrow (L), scores (R) */}
           <div className="flex items-center justify-between gap-4 flex-wrap mb-5">
             <div className="eyebrow">{job.source}</div>
@@ -120,7 +120,7 @@ export default async function ListingPage({
         </div>
 
         {/* Job details — full width, 2-col grid so card stays short */}
-        <div className="glass rounded-2xl p-7">
+        <div className="glass rounded-2xl p-5 sm:p-7">
           <div className="eyebrow mb-5 !text-[11px]">Job Details</div>
           <dl className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3">
             {detailItems.map((item) => (
@@ -156,7 +156,7 @@ export default async function ListingPage({
 
         {/* Description */}
         {job.description && (
-          <div className="glass rounded-2xl p-7">
+          <div className="glass rounded-2xl p-5 sm:p-7">
             <div className="eyebrow mb-4 !text-[11px]">Description</div>
             <div className="text-[15px] text-white/75 whitespace-pre-wrap leading-[1.85] max-h-[640px] overflow-y-auto pr-2">
               {cleanDescription(job.description)}
@@ -165,7 +165,7 @@ export default async function ListingPage({
         )}
 
         {/* Company — moved to bottom */}
-        <div className="glass rounded-2xl p-7">
+        <div className="glass rounded-2xl p-5 sm:p-7">
           <div className="eyebrow mb-5 !text-[11px]">Company</div>
           {job.company_reputation_available ? (
             <>

@@ -256,7 +256,7 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
       {showScoreOverlay && <ScoreOverlay job={job} onClose={() => setShowScoreOverlay(false)} />}
 
       <div
-        className="glass glass-hover rounded-[18px] p-6 cursor-pointer relative overflow-hidden"
+        className="glass glass-hover rounded-[18px] p-4 sm:p-6 cursor-pointer relative overflow-hidden"
         onClick={(e) => {
           if ((e.target as HTMLElement).closest("a, button, select")) return;
           router.push(`/listing/${job.id}`);
@@ -271,6 +271,17 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
               "radial-gradient(ellipse at 50% 0%, rgba(251,146,60,.05), transparent 60%)",
           }}
         />
+
+        {/* Top row of scores — visible only on mobile, above title */}
+        <button
+          onClick={() => setShowScoreOverlay(true)}
+          className="relative sm:hidden flex items-center gap-1.5 mb-3 cursor-pointer group"
+          title="Click for score breakdown"
+        >
+          <ScoreBadge score={job.ai_fit_score ?? null} label="AI" size="sm" />
+          <ScoreBadge score={score} size="sm" />
+          <span className="text-white/20 group-hover:text-white/55 text-xs transition-colors">ⓘ</span>
+        </button>
 
         <div className="relative flex items-start justify-between gap-5">
           <div className="flex-1 min-w-0">
@@ -370,8 +381,8 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
             )}
           </div>
 
-          {/* Right column — scores (AI first, then base score) */}
-          <div className="flex flex-col items-end gap-2 shrink-0">
+          {/* Right column — scores (AI first, then base score). Hidden on mobile (shown above instead) */}
+          <div className="hidden sm:flex flex-col items-end gap-2 shrink-0">
             <button
               onClick={() => setShowScoreOverlay(true)}
               className="flex items-center gap-1.5 cursor-pointer group"
@@ -384,50 +395,54 @@ export function JobCard({ job, onStatusChange }: JobCardProps) {
           </div>
         </div>
 
-        {/* Bottom action row */}
-        <div className="relative flex items-center justify-end gap-2.5 mt-5 pt-5 border-t border-white/[0.05]">
+        {/* Bottom action row — stacks vertically on mobile, single row on tablet+ */}
+        <div className="relative mt-5 pt-5 border-t border-white/[0.05] flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-end">
           {!isDemo && (
-            <>
-              <Select
-                value={status}
-                size="xs"
-                onChange={(e) => onStatusChange?.(job.id, e.target.value)}
-                className="mr-auto w-auto min-w-[70px]"
-              >
-                {statusOptions.map((s) => (
-                  <option key={s} value={s}>{statusLabels[s]}</option>
-                ))}
-              </Select>
-              <Button
-                variant={status === "not_interested" ? "danger" : "ghost-bordered"}
-                size="sm"
-                onClick={() => onStatusChange?.(job.id, "not_interested")}
-              >
-                👎 Not a Fit
-              </Button>
-              <Button
-                variant={status === "zombie_listing" ? "warning" : "ghost-bordered"}
-                size="sm"
-                onClick={() => onStatusChange?.(job.id, "zombie_listing")}
-                title="Listing is dead/expired"
-              >
-                🧟 Zombie
-              </Button>
-              <AppliedButton
-                isApplied={status === "applied"}
-                onClick={() => onStatusChange?.(job.id, "applied")}
-              />
-            </>
+            <Select
+              value={status}
+              size="xs"
+              onChange={(e) => onStatusChange?.(job.id, e.target.value)}
+              className="w-full sm:w-auto sm:min-w-[70px] sm:mr-auto"
+            >
+              {statusOptions.map((s) => (
+                <option key={s} value={s}>{statusLabels[s]}</option>
+              ))}
+            </Select>
           )}
-          <LinkButton
-            href={job.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            variant="primary"
-            size="sm"
-          >
-            {isDemo ? "👀 View posting →" : "🚀 Apply →"}
-          </LinkButton>
+          <div className="flex items-center flex-wrap gap-2 sm:gap-2.5 justify-end">
+            {!isDemo && (
+              <>
+                <Button
+                  variant={status === "not_interested" ? "danger" : "ghost-bordered"}
+                  size="sm"
+                  onClick={() => onStatusChange?.(job.id, "not_interested")}
+                >
+                  👎 Not a Fit
+                </Button>
+                <Button
+                  variant={status === "zombie_listing" ? "warning" : "ghost-bordered"}
+                  size="sm"
+                  onClick={() => onStatusChange?.(job.id, "zombie_listing")}
+                  title="Listing is dead/expired"
+                >
+                  🧟 Zombie
+                </Button>
+                <AppliedButton
+                  isApplied={status === "applied"}
+                  onClick={() => onStatusChange?.(job.id, "applied")}
+                />
+              </>
+            )}
+            <LinkButton
+              href={job.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              variant="primary"
+              size="sm"
+            >
+              {isDemo ? "👀 View posting →" : "🚀 Apply →"}
+            </LinkButton>
+          </div>
         </div>
       </div>
     </>

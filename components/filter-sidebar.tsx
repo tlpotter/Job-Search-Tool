@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { Select } from "@/components/ui/input";
 
 export interface Filters {
@@ -44,9 +45,36 @@ export const DEFAULT_FILTERS: Filters = {
   sortBy: "relevance_score",
 };
 
+/** Number of filters set to something other than the default. Excludes sortBy. */
+export function activeFilterCount(f: Filters): number {
+  let n = 0;
+  if (f.minScore !== DEFAULT_FILTERS.minScore) n++;
+  if (f.minAiScore !== DEFAULT_FILTERS.minAiScore) n++;
+  if (f.remote) n++;
+  if (f.localPhoenix) n++;
+  if (f.hybrid) n++;
+  if (f.hasEquity) n++;
+  if (f.hasBenefits) n++;
+  if (f.hasSalary) n++;
+  if (f.designSystems) n++;
+  if (f.mentionsAI) n++;
+  if (f.hideAgencies) n++;
+  if (f.aiScoredOnly) n++;
+  if (f.goodReputationOnly) n++;
+  if (f.postedWithin) n++;
+  if (f.companySize) n++;
+  if (f.roleType) n++;
+  if (f.source) n++;
+  return n;
+}
+
 interface FilterSidebarProps {
   filters: Filters;
   onChange: (filters: Filters) => void;
+  /** Mobile drawer open state */
+  mobileOpen?: boolean;
+  /** Called when the user closes the mobile drawer */
+  onMobileClose?: () => void;
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -164,13 +192,36 @@ function Range({
   );
 }
 
-export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
+export function FilterSidebar({
+  filters,
+  onChange,
+  mobileOpen = false,
+  onMobileClose,
+}: FilterSidebarProps) {
   function update<K extends keyof Filters>(key: K, value: Filters[K]) {
     onChange({ ...filters, [key]: value });
   }
 
-  return (
-    <aside className="w-60 shrink-0 space-y-7 sticky top-24 self-start">
+  // Lock background scroll while mobile drawer is open
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [mobileOpen]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onMobileClose?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [mobileOpen, onMobileClose]);
+
+  const body = (
+    <>
       <Section title={`Min score: ${filters.minScore}`}>
         <Range
           value={filters.minScore}
@@ -248,6 +299,52 @@ export function FilterSidebar({ filters, onChange }: FilterSidebarProps) {
       >
         Reset filters
       </button>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar — visible only at lg+ */}
+      <aside className="hidden lg:flex w-60 shrink-0 flex-col space-y-7 sticky top-24 self-start">
+        {body}
+      </aside>
+
+      {/* Mobile drawer */}
+      <div
+        className={[
+          "lg:hidden fixed inset-0 z-[60] transition-opacity duration-300",
+          mobileOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none",
+        ].join(" ")}
+        aria-hidden={!mobileOpen}
+        role="dialog"
+      >
+        {/* Backdrop */}
+        <div
+          className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+          onClick={onMobileClose}
+        />
+        {/* Panel */}
+        <div
+          className={[
+            "absolute inset-y-0 left-0 w-[88%] max-w-[340px] overflow-y-auto",
+            "bg-[#060a0f] border-r border-white/[0.08]",
+            "transition-transform duration-300 ease-out",
+            mobileOpen ? "translate-x-0" : "-translate-x-full",
+          ].join(" ")}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06] sticky top-0 bg-[#060a0f] z-10">
+            <div className="eyebrow">Filters</div>
+            <button
+              onClick={onMobileClose}
+              className="w-8 h-8 rounded-md text-white/60 hover:text-white hover:bg-white/[0.06] inline-flex items-center justify-center transition-colors"
+              aria-label="Close filters"
+            >
+              ✕
+            </button>
+          </div>
+          <div className="px-5 py-6 space-y-7">{body}</div>
+        </div>
+      </div>
+    </>
   );
 }

@@ -55,13 +55,13 @@ export function ListingActions({ listingId, applyUrl, initialStatus }: ListingAc
   }
 
   return (
-    <div className="flex items-center gap-2 flex-wrap justify-end">
+    <div className="flex items-center gap-2 flex-wrap sm:justify-end">
       <Select
         value={status}
         size="sm"
         onChange={(e) => updateStatus(e.target.value)}
         disabled={saving}
-        className="w-[165px]"
+        className="w-full sm:w-[165px]"
       >
         {STATUS_OPTIONS.map((s) => (
           <option key={s.value} value={s.value}>{s.label}</option>

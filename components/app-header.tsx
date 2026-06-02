@@ -27,8 +27,8 @@ export function AppHeader() {
 
   const navLinkClass = (active: boolean) =>
     [
-      "text-[15px] font-medium tracking-[0.06em] transition-colors duration-300",
-      active ? "text-white" : "text-white/35 hover:text-[rgba(251,146,60,.95)]",
+      "text-[13px] sm:text-[15px] font-medium tracking-[0.06em] transition-colors duration-300 whitespace-nowrap",
+      active ? "text-white" : "text-white/40 hover:text-[rgba(251,146,60,.95)]",
     ].join(" ");
 
   return (
@@ -43,16 +43,16 @@ export function AppHeader() {
       <nav
         className={[
           "sticky top-0 z-40 transition-opacity duration-[400ms] ease-out",
-          "px-6 md:px-10 py-5",
+          "px-4 sm:px-6 md:px-10 py-3.5 sm:py-5",
           "bg-[linear-gradient(to_bottom,rgba(6,10,15,.92),transparent)]",
           "backdrop-blur-md",
           scrolled ? "opacity-[0.55] hover:opacity-100" : "opacity-100",
         ].join(" ")}
       >
-        <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-6">
+        <div className="max-w-[1280px] mx-auto flex items-center justify-between gap-3 sm:gap-6">
           <Link
             href="/"
-            className="font-serif text-[20px] font-semibold italic tracking-tight"
+            className="font-serif text-[17px] sm:text-[20px] font-semibold italic tracking-tight shrink-0"
             style={{
               background:
                 "linear-gradient(90deg, #fb923c 0%, #38bdf8 40%, #ffffff 40%, #ffffff 100%)",
@@ -64,7 +64,7 @@ export function AppHeader() {
             UX Job Crawler
           </Link>
 
-          <ul className="hidden md:flex items-center gap-8 list-none">
+          <ul className="flex items-center gap-4 sm:gap-8 list-none">
             <li>
               <Link href="/" className={navLinkClass(pathname === "/")}>
                 Feed
@@ -77,15 +77,15 @@ export function AppHeader() {
             </li>
           </ul>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             {session && (
               <>
-                <span className="hidden sm:inline text-xs text-white/30 tracking-[0.04em]">
+                <span className="hidden lg:inline text-xs text-white/30 tracking-[0.04em]">
                   {session.email}
                 </span>
                 <button
                   onClick={handleLogout}
-                  className="text-[12px] font-semibold tracking-[0.12em] uppercase text-white/40 hover:text-[rgba(251,146,60,.95)] transition-colors duration-300"
+                  className="text-[11px] sm:text-[12px] font-semibold tracking-[0.12em] uppercase text-white/40 hover:text-[rgba(251,146,60,.95)] transition-colors duration-300"
                 >
                   Sign out
                 </button>

@@ -60,7 +60,7 @@ export function AiScoreButton({
 
   if (result) {
     return (
-      <div className="glass rounded-2xl p-6 space-y-5">
+      <div className="glass rounded-2xl p-5 sm:p-6 space-y-5">
         <div className="flex items-center justify-between">
           <div>
             <div className="eyebrow !text-[11px]">AI Fit Analysis</div>
@@ -122,7 +122,7 @@ export function AiScoreButton({
   if (isDemo) return null;
 
   return (
-    <div className="glass rounded-2xl p-6">
+    <div className="glass rounded-2xl p-5 sm:p-6">
       <div className="flex items-center justify-between gap-4">
         <div>
           <div className="eyebrow !text-[11px] mb-2">AI Fit Analysis</div>
