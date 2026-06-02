@@ -2,6 +2,21 @@ import { JobListing, JobSource } from "../types";
 import { SearchConfig } from "../../config";
 import { generateId } from "../dedup";
 
+// Same gate as Adzuna — JSearch wraps Google Jobs and also returns
+// Product Managers / Software Devs for design-related queries.
+const UX_TITLE_PATTERNS = [
+  /\bux\b/i, /\bui\b/i, /\buser experience\b/i, /\bproduct designer\b/i,
+  /\binteraction designer\b/i, /\bexperience designer\b/i, /\bdesign systems\b/i,
+  /\bdesign lead\b/i, /\bux engineer\b/i, /\bdesign technologist\b/i,
+  /\bcontent designer\b/i, /\bproduct design\b/i, /\bvisual designer\b/i,
+  /\bsenior designer\b/i, /\bstaff designer\b/i, /\bprincipal designer\b/i,
+  /\blead designer\b/i,
+];
+
+function isUXTitle(title: string): boolean {
+  return UX_TITLE_PATTERNS.some((re) => re.test(title));
+}
+
 interface JSearchJob {
   job_id: string;
   job_title: string;
@@ -122,6 +137,8 @@ export const jsearchSource: JobSource = {
         const jobs: JSearchJob[] = json.data ?? [];
 
         for (const job of jobs) {
+          if (!isUXTitle(job.job_title ?? "")) continue;
+
           const locationParts = [job.job_city, job.job_state, job.job_country]
             .filter(Boolean)
             .join(", ");
@@ -196,6 +213,8 @@ export const jsearchSource: JobSource = {
         console.log(`  JSearch Phoenix "${query}": ${jobs.length} results`);
 
         for (const job of jobs) {
+          if (!isUXTitle(job.job_title ?? "")) continue;
+
           const locationParts = [job.job_city, job.job_state, job.job_country]
             .filter(Boolean)
             .join(", ");

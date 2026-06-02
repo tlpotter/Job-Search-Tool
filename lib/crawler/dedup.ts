@@ -5,9 +5,16 @@ import { JobListing } from "./types";
 function normalizeUrl(url: string): string {
   try {
     const u = new URL(url.trim());
-    // Strip UTM and other tracking params that create false duplicates
-    ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
-     "ref", "source", "via", "referrer"].forEach((p) => u.searchParams.delete(p));
+    // Strip params that change per-request without identifying the job.
+    // Adzuna's `se` token rotates each call; many sources sprinkle UTM tags.
+    [
+      "utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term",
+      "ref", "source", "via", "referrer",
+      "se",     // Adzuna per-request session token
+      "v",      // Adzuna version stamp
+      "gh_jid", // Greenhouse sometimes appends this
+      "lever-source",
+    ].forEach((p) => u.searchParams.delete(p));
     return u.toString();
   } catch {
     return url.trim();
@@ -57,16 +64,39 @@ export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
 
   // 3. Fuzzy-check against DB by company name to catch URL-variant duplicates and
   //    jobs the user already actioned (not_interested, applied, etc.)
+  //    Pages around Supabase's 1000-row default so popular companies don't get
+  //    silently dropped.
   const companies = [...new Set(dedupedLocally.map((l) => l.company.trim()))];
-  const { data: existingByCompany } = await supabase
-    .from("listings")
-    .select("title, company, user_actions(status)")
-    .in("company", companies.slice(0, 500));
+  const companyChunks: string[][] = [];
+  for (let i = 0; i < companies.length; i += 100) {
+    companyChunks.push(companies.slice(i, i + 100));
+  }
+
+  type ExistingRow = {
+    title: string;
+    company: string;
+    user_actions: { status?: string }[];
+  };
+  const existingByCompany: ExistingRow[] = [];
+  for (const chunk of companyChunks) {
+    let offset = 0;
+    while (true) {
+      const { data, error } = await supabase
+        .from("listings")
+        .select("title, company, user_actions(status)")
+        .in("company", chunk)
+        .range(offset, offset + 999);
+      if (error || !data || data.length === 0) break;
+      existingByCompany.push(...(data as ExistingRow[]));
+      if (data.length < 1000) break;
+      offset += 1000;
+    }
+  }
 
   const ACTIONED_STATUSES = new Set(["applied", "not_interested", "hidden", "passed", "zombie_listing"]);
 
   const existingFuzzyKeys = new Set(
-    (existingByCompany ?? []).map((r: { title: string; company: string }) =>
+    existingByCompany.map((r) =>
       `${r.company.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`
     )
   );
@@ -74,12 +104,12 @@ export async function dedup(listings: JobListing[]): Promise<JobListing[]> {
   // Also build a set of fuzzy keys for jobs the user has already actioned —
   // used to block re-saving similar jobs from different sources/URLs
   const actionedFuzzyKeys = new Set(
-    (existingByCompany ?? [])
-      .filter((r: { title: string; company: string; user_actions: { status?: string }[] }) => {
+    existingByCompany
+      .filter((r) => {
         const status = r.user_actions?.[0]?.status ?? "";
         return ACTIONED_STATUSES.has(status);
       })
-      .map((r: { title: string; company: string }) =>
+      .map((r) =>
         `${r.company.toLowerCase().replace(/[^a-z0-9]/g, "")}|${r.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`
       )
   );

@@ -2,6 +2,22 @@ import { JobListing, JobSource } from "../types";
 import { SearchConfig } from "../../config";
 import { generateId } from "../dedup";
 
+// Same UX title regex used by ATS sources — keeps Adzuna's broad keyword
+// matching from sneaking Product Managers, Software Devs, Senior Directors,
+// etc. into the feed.
+const UX_TITLE_PATTERNS = [
+  /\bux\b/i, /\bui\b/i, /\buser experience\b/i, /\bproduct designer\b/i,
+  /\binteraction designer\b/i, /\bexperience designer\b/i, /\bdesign systems\b/i,
+  /\bdesign lead\b/i, /\bux engineer\b/i, /\bdesign technologist\b/i,
+  /\bcontent designer\b/i, /\bproduct design\b/i, /\bvisual designer\b/i,
+  /\bsenior designer\b/i, /\bstaff designer\b/i, /\bprincipal designer\b/i,
+  /\blead designer\b/i,
+];
+
+function isUXTitle(title: string): boolean {
+  return UX_TITLE_PATTERNS.some((re) => re.test(title));
+}
+
 interface AdzunaJob {
   id: string;
   title: string;
@@ -107,6 +123,8 @@ export const adzunaSource: JobSource = {
         for (const job of jobs) {
           // Skip jobs missing required fields that would crash generateId
           if (!job.title || !job.company?.display_name || !job.redirect_url) continue;
+          // Adzuna's fuzzy search returns lots of non-UX matches — gate on title
+          if (!isUXTitle(job.title)) continue;
 
           const location = job.location?.display_name ?? "";
           const isRemote =
@@ -153,6 +171,7 @@ export const adzunaSource: JobSource = {
             if (jobs.length === 0) break;
             for (const job of jobs) {
               if (!job.title || !job.company?.display_name || !job.redirect_url) continue;
+              if (!isUXTitle(job.title)) continue;
 
               const jobLocation = job.location?.display_name ?? location;
               const isRemote =

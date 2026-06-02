@@ -105,6 +105,25 @@ export function scoreListing(job: JobListing): JobListing {
   const isWrongProfessionTitle = wrongProfessionTitleTerms.some((t) => title.includes(t));
   if (isWrongProfessionTitle) score -= 50;
 
+  // Adjacent-but-wrong roles — Product Managers / Software Devs / Senior Directors
+  // that share buzzwords with UX titles and slip through the keyword search.
+  // Title-only because descriptions of real UX roles often mention working
+  // with PMs and engineers.
+  const adjacentRoleTitleTerms = [
+    "product manager", "program manager", "project manager",
+    "software developer", "software engineer", "data engineer", "data scientist",
+    "ml engineer", "machine learning engineer", "devops",
+    "salesforce developer", "salesforce architect",
+    "creative strategist", "creative strategy", "creative director", "creative producer",
+    "marketing manager", "growth manager", "growth marketing",
+    "business analyst", "data analyst", "financial analyst",
+    "sales engineer", "solutions engineer", "account executive",
+    "compensation", "incentive design", "instructional design",
+    "plant design", "plant designer",
+  ];
+  const isAdjacentRole = adjacentRoleTitleTerms.some((t) => title.includes(t));
+  if (isAdjacentRole) score -= 50;
+
   // Wrong profession signals in description — catches generic titles like "senior designer" applied to non-UX roles
   const descBody = (job.description ?? "").toLowerCase();
   const wrongProfessionDescTerms = [
