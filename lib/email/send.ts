@@ -7,7 +7,9 @@ import { supabase } from "../supabase";
 const HIDDEN_STATUSES = new Set(["applied", "not_interested", "hidden", "passed", "zombie_listing"]);
 
 async function fetchTopListingsFromDb(): Promise<JobListing[]> {
-  // Pull top AI-scored listings, with their user_actions status
+  // Pull top AI-scored listings, with their user_actions status.
+  // Primary selection is by AI fit score so the candidate pool is the user's
+  // best fits. Relevance ≥ 60 still filters out garbage.
   const { data, error } = await supabase
     .from("listings")
     .select(`
@@ -23,7 +25,7 @@ async function fetchTopListingsFromDb(): Promise<JobListing[]> {
     `)
     .not("ai_fit_score", "is", null)
     .gte("relevance_score", 60)
-    .order("relevance_score", { ascending: false })
+    .order("ai_fit_score", { ascending: false })
     .limit(100);
 
   if (error) throw new Error(`DB fetch failed: ${error.message}`);
@@ -87,6 +89,28 @@ export async function sendDigest(): Promise<void> {
     console.log("No actionable AI-scored listings to email.");
     return;
   }
+
+  // Sort: jobs posted in the last 24 hours first, then by AI fit DESC,
+  // then by posted_date DESC. Buckets in composeEmail use .filter() which
+  // preserves order, so this ordering propagates into each section.
+  const RECENT_MS = 24 * 60 * 60 * 1000;
+  const now = Date.now();
+  const isRecent = (d: string | undefined) => {
+    if (!d) return false;
+    const t = new Date(d).getTime();
+    return Number.isFinite(t) && now - t < RECENT_MS;
+  };
+  listings.sort((a, b) => {
+    const aRecent = isRecent(a.postedDate) ? 1 : 0;
+    const bRecent = isRecent(b.postedDate) ? 1 : 0;
+    if (aRecent !== bRecent) return bRecent - aRecent;
+
+    const aAi = a.aiFitScore ?? 0;
+    const bAi = b.aiFitScore ?? 0;
+    if (aAi !== bAi) return bAi - aAi;
+
+    return (b.postedDate ?? "").localeCompare(a.postedDate ?? "");
+  });
 
   console.log(`  Emailing ${listings.length} top listings (excluding applied/hidden/not-interested)`);
 
