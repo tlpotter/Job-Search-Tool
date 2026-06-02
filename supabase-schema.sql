@@ -59,3 +59,24 @@ CREATE INDEX IF NOT EXISTS idx_listings_score ON listings(relevance_score DESC);
 CREATE INDEX IF NOT EXISTS idx_listings_posted ON listings(posted_date DESC);
 CREATE INDEX IF NOT EXISTS idx_listings_source ON listings(source);
 CREATE INDEX IF NOT EXISTS idx_user_actions_status ON user_actions(status);
+
+-- ATS slug health: tracks 404 history per (platform, slug) so the crawler
+-- can skip dead boards instead of re-hitting them daily.
+-- Behavior:
+--   200 from board                  -> active, consecutive_404s = 0, retry tomorrow
+--   404 (1st-2nd consecutive)       -> active, retry tomorrow
+--   404 (3rd consecutive)           -> cooldown, retry in 7 days
+--   404 after cooldown retry        -> dormant, retry in 30 days
+--   404 while dormant               -> dormant, retry in 30 more days
+--   5xx / network errors            -> no state change (transient)
+CREATE TABLE IF NOT EXISTS ats_slug_health (
+  platform TEXT NOT NULL,
+  slug TEXT NOT NULL,
+  consecutive_404s INTEGER DEFAULT 0,
+  last_attempted_at TIMESTAMPTZ,
+  next_attempt_at TIMESTAMPTZ DEFAULT NOW(),
+  status TEXT DEFAULT 'active',
+  PRIMARY KEY (platform, slug)
+);
+
+CREATE INDEX IF NOT EXISTS idx_ats_health_next_attempt ON ats_slug_health(platform, next_attempt_at);

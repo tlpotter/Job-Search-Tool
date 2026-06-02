@@ -3,9 +3,9 @@ import * as path from "path";
 import { JobListing, JobSource } from "../types";
 import { SearchConfig } from "../../config";
 import { generateId } from "../dedup";
-import { cleanDescription } from "../../utils/clean-description";
 import { runConcurrent } from "../utils/concurrent";
 import { isUSOrRemote } from "../utils/location-filter";
+import { SlugHealth, type FetchOutcome } from "../utils/slug-health";
 
 interface CompanyEntry {
   slug: string;
@@ -32,7 +32,6 @@ const UX_PATTERNS = [
 interface BambooJob {
   id?: number | string;
   jobOpeningName?: string;
-  // Public embed feed location fields vary; try several
   location?: { city?: string; state?: string; addressLine1?: string };
   city?: string;
   state?: string;
@@ -55,7 +54,11 @@ function bambooLocation(j: BambooJob): string {
   return [...new Set(parts.filter(Boolean))].join(", ");
 }
 
-async function fetchCompany(company: CompanyEntry): Promise<JobListing[]> {
+async function fetchCompany(
+  company: CompanyEntry,
+  health: SlugHealth
+): Promise<JobListing[]> {
+  let outcome: FetchOutcome;
   try {
     const res = await fetch(
       `https://${company.slug}.bamboohr.com/careers/list?version=1.0.0`,
@@ -66,56 +69,70 @@ async function fetchCompany(company: CompanyEntry): Promise<JobListing[]> {
         },
       }
     );
-    if (!res.ok) return [];
+    if (res.status === 404) {
+      outcome = "not_found";
+    } else if (!res.ok) {
+      outcome = "transient";
+    } else {
+      outcome = "success";
+      const json = await res.json();
+      const jobs: BambooJob[] = json.result ?? json.jobs ?? [];
+      if (!Array.isArray(jobs)) {
+        health.record(company.slug, "transient");
+        return [];
+      }
 
-    const json = await res.json();
-    const jobs: BambooJob[] = json.result ?? json.jobs ?? [];
-    if (!Array.isArray(jobs)) return [];
+      const out: JobListing[] = [];
+      for (const job of jobs) {
+        const title = job.jobOpeningName ?? "";
+        if (!UX_PATTERNS.some((re) => re.test(title))) continue;
+        if (job.jobOpeningStatus && job.jobOpeningStatus !== "Open") continue;
 
-    const out: JobListing[] = [];
-    for (const job of jobs) {
-      const title = job.jobOpeningName ?? "";
-      if (!UX_PATTERNS.some((re) => re.test(title))) continue;
-      if (job.jobOpeningStatus && job.jobOpeningStatus !== "Open") continue;
+        const location = bambooLocation(job);
+        const remoteFlag =
+          job.isRemote === true ||
+          location.toLowerCase().includes("remote") ||
+          location === "";
+        if (!isUSOrRemote(location, remoteFlag)) continue;
 
-      const location = bambooLocation(job);
-      const remoteFlag =
-        job.isRemote === true ||
-        location.toLowerCase().includes("remote") ||
-        location === "";
+        const url =
+          job.jobOpeningShareUrl ??
+          `https://${company.slug}.bamboohr.com/careers/${job.id ?? ""}`;
 
-      if (!isUSOrRemote(location, remoteFlag)) continue;
-
-      const url =
-        job.jobOpeningShareUrl ??
-        `https://${company.slug}.bamboohr.com/careers/${job.id ?? ""}`;
-
-      const listing: JobListing = {
-        id: "",
-        source: "bamboohr",
-        title,
-        company: company.name,
-        location: location || "Remote",
-        remote: remoteFlag,
-        url,
-        postedDate: job.datePosted?.split("T")[0],
-        description: "",
-        firstSeen: new Date().toISOString().split("T")[0],
-      };
-      listing.id = generateId(listing);
-      out.push(listing);
+        const listing: JobListing = {
+          id: "",
+          source: "bamboohr",
+          title,
+          company: company.name,
+          location: location || "Remote",
+          remote: remoteFlag,
+          url,
+          postedDate: job.datePosted?.split("T")[0],
+          description: "",
+          firstSeen: new Date().toISOString().split("T")[0],
+        };
+        listing.id = generateId(listing);
+        out.push(listing);
+      }
+      health.record(company.slug, outcome);
+      return out;
     }
-    return out;
   } catch {
-    return [];
+    outcome = "transient";
   }
+  health.record(company.slug, outcome);
+  return [];
 }
 
 export const bamboohrSource: JobSource = {
   name: "bamboohr",
   async fetch(_config: SearchConfig): Promise<JobListing[]> {
-    const companies = loadCompanies();
-    const batches = await runConcurrent(companies, 10, fetchCompany);
+    const allCompanies = loadCompanies();
+    const health = new SlugHealth("bamboohr");
+    await health.load();
+
+    const toAttempt = allCompanies.filter((c) => health.shouldAttempt(c.slug));
+    const batches = await runConcurrent(toAttempt, 10, (c) => fetchCompany(c, health));
 
     const seen = new Set<string>();
     const results: JobListing[] = [];
@@ -127,6 +144,9 @@ export const bamboohrSource: JobSource = {
         }
       }
     }
+
+    await health.flush();
+    console.log(`    ${health.summary(allCompanies.length, toAttempt.length, results.length)}`);
     return results;
   },
 };

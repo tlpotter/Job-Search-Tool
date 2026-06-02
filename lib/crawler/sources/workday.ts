@@ -6,12 +6,13 @@ import { generateId } from "../dedup";
 import { cleanDescription } from "../../utils/clean-description";
 import { runConcurrent } from "../utils/concurrent";
 import { isUSOrRemote } from "../utils/location-filter";
+import { SlugHealth, type FetchOutcome } from "../utils/slug-health";
 
 interface CompanyEntry {
   slug: string;
   name: string;
-  instance: string; // e.g., "wd1", "wd3"
-  site: string;     // e.g., "external_careers"
+  instance: string;
+  site: string;
 }
 
 function loadCompanies(): CompanyEntry[] {
@@ -22,6 +23,11 @@ function loadCompanies(): CompanyEntry[] {
   } catch {
     return [];
   }
+}
+
+// Workday slugs are composite — keep the same uniqueness in the health table
+function healthKey(c: CompanyEntry): string {
+  return `${c.slug}|${c.instance}|${c.site}`;
 }
 
 const UX_PATTERNS = [
@@ -39,10 +45,15 @@ interface WorkdayJob {
   bulletFields?: string[];
 }
 
-async function fetchCompany(company: CompanyEntry): Promise<JobListing[]> {
+async function fetchCompany(
+  company: CompanyEntry,
+  health: SlugHealth
+): Promise<JobListing[]> {
   const { slug, instance, site, name } = company;
   const base = `https://${slug}.${instance}.myworkdayjobs.com`;
   const apiUrl = `${base}/wday/cxs/${slug}/${site}/jobs`;
+  const key = healthKey(company);
+  let outcome: FetchOutcome;
 
   try {
     const res = await fetch(apiUrl, {
@@ -59,52 +70,60 @@ async function fetchCompany(company: CompanyEntry): Promise<JobListing[]> {
         searchText: "designer",
       }),
     });
-    if (!res.ok) return [];
+    if (res.status === 404) {
+      outcome = "not_found";
+    } else if (!res.ok) {
+      outcome = "transient";
+    } else {
+      outcome = "success";
+      const json = await res.json();
+      const jobs: WorkdayJob[] = json.jobPostings ?? [];
 
-    const json = await res.json();
-    const jobs: WorkdayJob[] = json.jobPostings ?? [];
+      const out: JobListing[] = [];
+      for (const job of jobs) {
+        const title = job.title ?? "";
+        if (!UX_PATTERNS.some((re) => re.test(title))) continue;
 
-    const out: JobListing[] = [];
-    for (const job of jobs) {
-      const title = job.title ?? "";
-      if (!UX_PATTERNS.some((re) => re.test(title))) continue;
+        const location = job.locationsText ?? "";
+        const remoteFlag = location.toLowerCase().includes("remote") || location === "";
+        if (!isUSOrRemote(location, remoteFlag)) continue;
 
-      const location = job.locationsText ?? "";
-      const remoteFlag =
-        location.toLowerCase().includes("remote") || location === "";
+        const url = job.externalPath ? `${base}/en-US/${site}${job.externalPath}` : base;
 
-      if (!isUSOrRemote(location, remoteFlag)) continue;
-
-      const url = job.externalPath
-        ? `${base}/en-US/${site}${job.externalPath}`
-        : base;
-
-      const listing: JobListing = {
-        id: "",
-        source: "workday",
-        title,
-        company: name,
-        location: location || "Remote",
-        remote: remoteFlag,
-        url,
-        postedDate: job.postedOn ? new Date(job.postedOn).toISOString().split("T")[0] : undefined,
-        description: cleanDescription((job.bulletFields ?? []).join("\n")),
-        firstSeen: new Date().toISOString().split("T")[0],
-      };
-      listing.id = generateId(listing);
-      out.push(listing);
+        const listing: JobListing = {
+          id: "",
+          source: "workday",
+          title,
+          company: name,
+          location: location || "Remote",
+          remote: remoteFlag,
+          url,
+          postedDate: job.postedOn ? new Date(job.postedOn).toISOString().split("T")[0] : undefined,
+          description: cleanDescription((job.bulletFields ?? []).join("\n")),
+          firstSeen: new Date().toISOString().split("T")[0],
+        };
+        listing.id = generateId(listing);
+        out.push(listing);
+      }
+      health.record(key, outcome);
+      return out;
     }
-    return out;
   } catch {
-    return [];
+    outcome = "transient";
   }
+  health.record(key, outcome);
+  return [];
 }
 
 export const workdaySource: JobSource = {
   name: "workday",
   async fetch(_config: SearchConfig): Promise<JobListing[]> {
-    const companies = loadCompanies();
-    const batches = await runConcurrent(companies, 15, fetchCompany);
+    const allCompanies = loadCompanies();
+    const health = new SlugHealth("workday");
+    await health.load();
+
+    const toAttempt = allCompanies.filter((c) => health.shouldAttempt(healthKey(c)));
+    const batches = await runConcurrent(toAttempt, 15, (c) => fetchCompany(c, health));
 
     const seen = new Set<string>();
     const results: JobListing[] = [];
@@ -116,6 +135,9 @@ export const workdaySource: JobSource = {
         }
       }
     }
+
+    await health.flush();
+    console.log(`    ${health.summary(allCompanies.length, toAttempt.length, results.length)}`);
     return results;
   },
 };

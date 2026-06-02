@@ -6,6 +6,7 @@ import { generateId } from "../dedup";
 import { cleanDescription } from "../../utils/clean-description";
 import { runConcurrent } from "../utils/concurrent";
 import { isUSOrRemote } from "../utils/location-filter";
+import { SlugHealth, type FetchOutcome } from "../utils/slug-health";
 
 interface CompanyEntry {
   slug: string;
@@ -43,56 +44,74 @@ interface LeverJob {
   createdAt: number;
 }
 
-async function fetchCompany(company: CompanyEntry): Promise<JobListing[]> {
+async function fetchCompany(
+  company: CompanyEntry,
+  health: SlugHealth
+): Promise<JobListing[]> {
+  let outcome: FetchOutcome;
   try {
     const res = await fetch(
       `https://api.lever.co/v0/postings/${company.slug}?mode=json`
     );
-    if (!res.ok) return [];
+    if (res.status === 404) {
+      outcome = "not_found";
+    } else if (!res.ok) {
+      outcome = "transient";
+    } else {
+      outcome = "success";
+      const jobs: LeverJob[] = await res.json();
+      if (!Array.isArray(jobs)) {
+        health.record(company.slug, "transient");
+        return [];
+      }
 
-    const jobs: LeverJob[] = await res.json();
-    if (!Array.isArray(jobs)) return [];
+      const out: JobListing[] = [];
+      for (const job of jobs) {
+        if (!UX_PATTERNS.some((re) => re.test(job.text))) continue;
 
-    const out: JobListing[] = [];
-    for (const job of jobs) {
-      if (!UX_PATTERNS.some((re) => re.test(job.text))) continue;
+        const location = job.categories?.location ?? "";
+        const isRemote =
+          location.toLowerCase().includes("remote") ||
+          location.toLowerCase().includes("anywhere") ||
+          location === "";
+        if (!isUSOrRemote(location, isRemote)) continue;
 
-      const location = job.categories?.location ?? "";
-      const isRemote =
-        location.toLowerCase().includes("remote") ||
-        location.toLowerCase().includes("anywhere") ||
-        location === "";
-
-      if (!isUSOrRemote(location, isRemote)) continue;
-
-      const listing: JobListing = {
-        id: "",
-        source: "lever",
-        title: job.text,
-        company: company.name,
-        location: location || "Remote",
-        remote: isRemote,
-        url: job.hostedUrl,
-        postedDate: job.createdAt
-          ? new Date(job.createdAt).toISOString().split("T")[0]
-          : undefined,
-        description: cleanDescription(job.descriptionPlain ?? ""),
-        firstSeen: new Date().toISOString().split("T")[0],
-      };
-      listing.id = generateId(listing);
-      out.push(listing);
+        const listing: JobListing = {
+          id: "",
+          source: "lever",
+          title: job.text,
+          company: company.name,
+          location: location || "Remote",
+          remote: isRemote,
+          url: job.hostedUrl,
+          postedDate: job.createdAt
+            ? new Date(job.createdAt).toISOString().split("T")[0]
+            : undefined,
+          description: cleanDescription(job.descriptionPlain ?? ""),
+          firstSeen: new Date().toISOString().split("T")[0],
+        };
+        listing.id = generateId(listing);
+        out.push(listing);
+      }
+      health.record(company.slug, outcome);
+      return out;
     }
-    return out;
   } catch {
-    return [];
+    outcome = "transient";
   }
+  health.record(company.slug, outcome);
+  return [];
 }
 
 export const leverSource: JobSource = {
   name: "lever",
   async fetch(_config: SearchConfig): Promise<JobListing[]> {
-    const companies = loadCompanies();
-    const batches = await runConcurrent(companies, 30, fetchCompany);
+    const allCompanies = loadCompanies();
+    const health = new SlugHealth("lever");
+    await health.load();
+
+    const toAttempt = allCompanies.filter((c) => health.shouldAttempt(c.slug));
+    const batches = await runConcurrent(toAttempt, 30, (c) => fetchCompany(c, health));
 
     const seen = new Set<string>();
     const results: JobListing[] = [];
@@ -104,6 +123,9 @@ export const leverSource: JobSource = {
         }
       }
     }
+
+    await health.flush();
+    console.log(`    ${health.summary(allCompanies.length, toAttempt.length, results.length)}`);
     return results;
   },
 };

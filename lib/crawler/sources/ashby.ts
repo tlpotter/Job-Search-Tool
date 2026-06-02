@@ -6,6 +6,7 @@ import { generateId } from "../dedup";
 import { cleanDescription } from "../../utils/clean-description";
 import { runConcurrent } from "../utils/concurrent";
 import { isUSOrRemote } from "../utils/location-filter";
+import { SlugHealth, type FetchOutcome } from "../utils/slug-health";
 
 interface CompanyEntry {
   slug: string;
@@ -40,52 +41,67 @@ interface AshbyJob {
   descriptionPlain?: string;
 }
 
-async function fetchCompany(company: CompanyEntry): Promise<JobListing[]> {
+async function fetchCompany(
+  company: CompanyEntry,
+  health: SlugHealth
+): Promise<JobListing[]> {
+  let outcome: FetchOutcome;
   try {
     const res = await fetch(
       `https://api.ashbyhq.com/posting-api/job-board/${company.slug}`,
       { headers: { "User-Agent": "Mozilla/5.0 (compatible; job-crawler/1.0)" } }
     );
-    if (!res.ok) return [];
+    if (res.status === 404) {
+      outcome = "not_found";
+    } else if (!res.ok) {
+      outcome = "transient";
+    } else {
+      outcome = "success";
+      const json = await res.json();
+      const jobs: AshbyJob[] = json.jobs ?? [];
+      const out: JobListing[] = [];
 
-    const json = await res.json();
-    const jobs: AshbyJob[] = json.jobs ?? [];
-    const out: JobListing[] = [];
+      for (const job of jobs) {
+        if (!UX_PATTERNS.some((re) => re.test(job.title))) continue;
 
-    for (const job of jobs) {
-      if (!UX_PATTERNS.some((re) => re.test(job.title))) continue;
+        const location = job.location?.name ?? "";
+        const isRemote = job.isRemote || location.toLowerCase().includes("remote") || location === "";
+        if (!isUSOrRemote(location, isRemote)) continue;
 
-      const location = job.location?.name ?? "";
-      const isRemote = job.isRemote || location.toLowerCase().includes("remote") || location === "";
-
-      if (!isUSOrRemote(location, isRemote)) continue;
-
-      const listing: JobListing = {
-        id: "",
-        source: "ashby",
-        title: job.title,
-        company: company.name,
-        location: isRemote ? "Remote" : (location || "See listing"),
-        remote: isRemote,
-        url: job.jobUrl,
-        postedDate: job.publishedDate?.split("T")[0],
-        description: cleanDescription(job.descriptionPlain ?? ""),
-        firstSeen: new Date().toISOString().split("T")[0],
-      };
-      listing.id = generateId(listing);
-      out.push(listing);
+        const listing: JobListing = {
+          id: "",
+          source: "ashby",
+          title: job.title,
+          company: company.name,
+          location: isRemote ? "Remote" : (location || "See listing"),
+          remote: isRemote,
+          url: job.jobUrl,
+          postedDate: job.publishedDate?.split("T")[0],
+          description: cleanDescription(job.descriptionPlain ?? ""),
+          firstSeen: new Date().toISOString().split("T")[0],
+        };
+        listing.id = generateId(listing);
+        out.push(listing);
+      }
+      health.record(company.slug, outcome);
+      return out;
     }
-    return out;
   } catch {
-    return [];
+    outcome = "transient";
   }
+  health.record(company.slug, outcome);
+  return [];
 }
 
 export const ashbySource: JobSource = {
   name: "ashby",
   async fetch(_config: SearchConfig): Promise<JobListing[]> {
-    const companies = loadCompanies();
-    const batches = await runConcurrent(companies, 20, fetchCompany);
+    const allCompanies = loadCompanies();
+    const health = new SlugHealth("ashby");
+    await health.load();
+
+    const toAttempt = allCompanies.filter((c) => health.shouldAttempt(c.slug));
+    const batches = await runConcurrent(toAttempt, 20, (c) => fetchCompany(c, health));
 
     const seen = new Set<string>();
     const results: JobListing[] = [];
@@ -97,6 +113,9 @@ export const ashbySource: JobSource = {
         }
       }
     }
+
+    await health.flush();
+    console.log(`    ${health.summary(allCompanies.length, toAttempt.length, results.length)}`);
     return results;
   },
 };
