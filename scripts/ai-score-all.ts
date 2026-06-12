@@ -13,11 +13,13 @@ const CONCURRENCY = 3; // parallel requests to avoid rate limits
 async function main() {
   const sb = getSupabase();
 
+  // Pick up listings missing AI scoring at all, OR missing the new sub-scores
+  // (so existing AI-scored rows get backfilled with the 5-axis model).
   const { data, error } = await sb
     .from("listings")
     .select("*")
     .gte("relevance_score", SCORE_THRESHOLD)
-    .or("ai_fit_score.is.null,ai_fit_score.eq.50,ai_fit_score.eq.0,ai_description_summary.is.null")
+    .or("ai_fit_score.is.null,ai_score_role.is.null")
     .limit(10000);
 
   if (error) { console.error(error); return; }

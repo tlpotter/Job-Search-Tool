@@ -8,6 +8,7 @@ import { AiScoreButton } from "@/components/ai-score-button";
 import { ListingActions } from "@/components/listing-actions";
 import { AppHeader } from "@/components/app-header";
 import { Badge } from "@/components/ui/badge";
+import { CopyButton } from "@/components/copy-button";
 import { cleanDescription } from "@/lib/utils/clean-description";
 
 export default async function ListingPage({
@@ -164,7 +165,10 @@ export default async function ListingPage({
         {/* Description */}
         {job.description && (
           <div className="glass rounded-2xl p-5 sm:p-7">
-            <div className="eyebrow mb-4 !text-[11px]">Description</div>
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <div className="eyebrow !text-[11px]">Description</div>
+              <CopyButton text={cleanDescription(job.description)} />
+            </div>
             <div className="text-[15px] text-white/75 whitespace-pre-wrap leading-[1.85] max-h-[640px] overflow-y-auto pr-2">
               {cleanDescription(job.description)}
             </div>
